@@ -1,4 +1,4 @@
-import { db } from './db.js?v=8';
+import { db } from './db.js?v=9';
 
 export const SAMPLE_VOCAB = [
   { english: 'apple', vietnamese: 'quả táo', ipa: '/ˈæp.əl/', unit: 'Basic', masteryLevel: 0 },

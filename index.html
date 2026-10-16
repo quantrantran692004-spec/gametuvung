@@ -17,8 +17,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="./css/main.css">
-  <link rel="stylesheet" href="./css/game.css">
+  <link rel="stylesheet" href="./css/main.css?v=9">
+  <link rel="stylesheet" href="./css/game.css?v=9">
 
   <!-- Document Export & Import Libraries (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.js"></script>
@@ -134,7 +134,7 @@
         <!-- Controls -->
         <div class="game-controls">
           <div class="input-container">
-            <input type="text" id="game-input" class="game-input" placeholder="GÕ TRỰC TIẾP TRÊN BÀN PHÍM..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+            <input type="text" id="game-input" class="game-input" inputmode="text" placeholder="Gõ đáp án tại đây..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
           </div>
           <button id="game-speak-btn" class="btn btn-green" style="padding: 12px 14px;" title="Đọc lại từ đang rơi">🔊 ĐỌC</button>
           <button id="game-fire-btn" class="btn btn-pink" style="padding: 12px 20px;">🎯 BẮN</button>
@@ -375,6 +375,6 @@
   </div>
 
   <!-- Entry Script with Cache Busting -->
-  <script type="module" src="./js/app.js?v=8"></script>
+  <script type="module" src="./js/app.js?v=9"></script>
 </body>
 </html>

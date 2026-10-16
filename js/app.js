@@ -1,15 +1,15 @@
-import { db } from './db.js?v=8';
-import { profileManager } from './profile-manager.js?v=8';
-import { vocabManager } from './vocab-manager.js?v=8';
-import { statsManager } from './stats-manager.js?v=8';
-import { uiManager } from './ui-manager.js?v=8';
-import { GameEngine } from './game-engine.js?v=8';
-import { t, setLanguage } from './i18n.js?v=8';
-import { FileImporter } from './importer.js?v=8';
-import { DocExporter } from './doc-exporter.js?v=8';
-import { SpacedRepetition } from './spaced-repetition.js?v=8';
-import { getPracticeSentences } from './sentence-manager.js?v=8';
-import { audioManager } from './audio-manager.js?v=8';
+import { db } from './db.js?v=9';
+import { profileManager } from './profile-manager.js?v=9';
+import { vocabManager } from './vocab-manager.js?v=9';
+import { statsManager } from './stats-manager.js?v=9';
+import { uiManager } from './ui-manager.js?v=9';
+import { GameEngine } from './game-engine.js?v=9';
+import { t, setLanguage } from './i18n.js?v=9';
+import { FileImporter } from './importer.js?v=9';
+import { DocExporter } from './doc-exporter.js?v=9';
+import { SpacedRepetition } from './spaced-repetition.js?v=9';
+import { getPracticeSentences } from './sentence-manager.js?v=9';
+import { audioManager } from './audio-manager.js?v=9';
 
 class App {
   constructor() {

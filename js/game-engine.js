@@ -1,7 +1,7 @@
-import { AnswerChecker } from './answer-checker.js?v=8';
-import { audioManager } from './audio-manager.js?v=8';
-import { SpacedRepetition } from './spaced-repetition.js?v=8';
-import { vocabManager } from './vocab-manager.js?v=8';
+import { AnswerChecker } from './answer-checker.js?v=9';
+import { audioManager } from './audio-manager.js?v=9';
+import { SpacedRepetition } from './spaced-repetition.js?v=9';
+import { vocabManager } from './vocab-manager.js?v=9';
 
 export class GameEngine {
   constructor(canvas, options = {}) {
