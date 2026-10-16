@@ -425,16 +425,62 @@ export class GameEngine {
       this.ctx.restore();
     }
 
-    // Draw Shooter Base Cannon at bottom center
+    // Draw Shooter Cannon / Turret (Parroto / Space Shooter Style)
     const cx = this.canvas.width / 2;
-    const cy = this.canvas.height;
+    const cy = this.canvas.height - 10;
+    
+    // Find active target angle (aim at currently typed word or center)
+    let aimX = cx;
+    let aimY = 50;
+    const activeTarget = this.activeWords.find(w => w.typedProgress > 0) || this.activeWords[0];
+    if (activeTarget) {
+      aimX = activeTarget.x + activeTarget.width / 2;
+      aimY = activeTarget.y + activeTarget.height / 2;
+    }
+    const angle = Math.atan2(aimY - cy, aimX - cx);
+
     this.ctx.save();
+    this.ctx.translate(cx, cy);
+
+    // 1. Base Platform
+    this.ctx.fillStyle = '#0f142b';
+    this.ctx.strokeStyle = '#00ffff';
+    this.ctx.lineWidth = 3;
+    this.ctx.shadowColor = '#00ffff';
+    this.ctx.shadowBlur = 12;
+    this.ctx.beginPath();
+    this.ctx.arc(0, 0, 32, Math.PI, 0, false);
+    this.ctx.fill();
+    this.ctx.stroke();
+
+    // 2. Rotating Turret Barrel
+    this.ctx.rotate(angle + Math.PI / 2); // Rotate towards target
+
+    // Dual Barrel Laser Cannons
+    this.ctx.fillStyle = '#ff007f';
+    this.ctx.shadowColor = '#ff007f';
+    this.ctx.shadowBlur = 10;
+    
+    // Left barrel
+    this.ctx.fillRect(-10, -42, 6, 32);
+    // Right barrel
+    this.ctx.fillRect(4, -42, 6, 32);
+
+    // Turret Core Body
     this.ctx.fillStyle = '#00ffff';
     this.ctx.shadowColor = '#00ffff';
+    this.ctx.beginPath();
+    this.ctx.arc(0, -5, 16, 0, Math.PI * 2);
+    this.ctx.fill();
+
+    // Core Glowing Energy Light
+    this.ctx.fillStyle = '#ffffff';
+    this.ctx.shadowColor = '#ffffff';
     this.ctx.shadowBlur = 15;
     this.ctx.beginPath();
-    this.ctx.arc(cx, cy, 25, Math.PI, 0, false);
+    this.ctx.arc(0, -5, 6, 0, Math.PI * 2);
     this.ctx.fill();
+
     this.ctx.restore();
   }
 
