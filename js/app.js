@@ -111,7 +111,8 @@ class App {
         if (hud.lives !== undefined) {
           const heartsContainer = document.getElementById('hud-lives-container');
           if (heartsContainer) {
-            heartsContainer.innerHTML = Array.from({ length: settings.lives || 5 }).map((_, i) => 
+            const maxLives = settings.lives || 5;
+            heartsContainer.innerHTML = Array.from({ length: maxLives }).map((_, i) => 
               `<span class="heart-icon ${i >= hud.lives ? 'heart-lost' : ''}">♥</span>`
             ).join('');
           }
