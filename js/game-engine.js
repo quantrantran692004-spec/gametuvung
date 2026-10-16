@@ -1,7 +1,7 @@
-import { AnswerChecker } from './answer-checker.js?v=10';
-import { audioManager } from './audio-manager.js?v=10';
-import { SpacedRepetition } from './spaced-repetition.js?v=10';
-import { vocabManager } from './vocab-manager.js?v=10';
+import { AnswerChecker } from './answer-checker.js?v=11';
+import { audioManager } from './audio-manager.js?v=11';
+import { SpacedRepetition } from './spaced-repetition.js?v=11';
+import { vocabManager } from './vocab-manager.js?v=11';
 
 export class GameEngine {
   constructor(canvas, options = {}) {
@@ -177,13 +177,13 @@ export class GameEngine {
       const targetClean = w.target.trim().toLowerCase();
       const promptClean = w.prompt.trim().toLowerCase();
 
-      // Check prefix match to highlight letters
+      // Mọi ký tự đã gõ đều thay dấu chấm; đúng/sai chỉ quyết định màu.
       w.typedText = clean;
-      if (clean && targetClean.startsWith(clean)) {
-        w.typedProgress = clean.length;
+      w.typedProgress = clean.length;
+      w.isPrefixCorrect = !clean || targetClean.startsWith(clean);
+      if (clean && w.isPrefixCorrect) {
         w.glow = '#67E8A5';
       } else {
-        w.typedProgress = 0;
         w.glow = clean ? '#FF6B91' : '#49D7C5';
         w.errorUntil = performance.now() + 450;
       }
@@ -450,10 +450,15 @@ export class GameEngine {
           : (showFirstCharacter && c === 0 ? targetStr[0] : '.');
         const charWidth = this.ctx.measureText(char).width;
 
-        if (c < typedLen) {
+        if (c < typedLen && w.isPrefixCorrect !== false) {
           // Ký tự đã nhập đúng: xanh thành công
           this.ctx.fillStyle = '#67E8A5';
           this.ctx.shadowColor = '#67E8A5';
+          this.ctx.shadowBlur = 8;
+        } else if (c < typedLen) {
+          // Ký tự sai vẫn giữ trên thẻ để người chơi nhìn thấy và sửa
+          this.ctx.fillStyle = '#FF718B';
+          this.ctx.shadowColor = '#FF718B';
           this.ctx.shadowBlur = 8;
         } else {
           // Unmatched character: Soft Gray / Cyan
