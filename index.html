@@ -19,6 +19,10 @@
   <!-- Stylesheets -->
   <link rel="stylesheet" href="./css/main.css">
   <link rel="stylesheet" href="./css/game.css">
+
+  <!-- Document Export & Import Libraries (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body class="perf-balanced">
   <!-- Cyber Grid Background -->
@@ -51,6 +55,7 @@
         <select id="game-mode-select" class="cyber-input" style="text-align: center;">
           <option value="survival">Sinh tồn (5 Mạng)</option>
           <option value="timed">Tính giờ (60 Giây)</option>
+          <option value="srs">Ôn từ cần nhớ (Spaced Repetition)</option>
           <option value="practice">Luyện tập tự do</option>
         </select>
       </div>
@@ -146,13 +151,26 @@
 
     <!-- SCREEN: VOCABULARY -->
     <main id="screen-vocab" class="screen">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2 class="neon-title">KHO TỪ VỰNG</h2>
-        <div style="display: flex; gap: 8px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+        <h2 class="neon-title" style="margin: 0;">KHO TỪ VỰNG</h2>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
           <button id="btn-open-add-word" class="btn btn-sm btn-green">+ THÊM TỪ</button>
+          <button id="btn-open-import" class="btn btn-sm" style="border-color: var(--color-neon-yellow); color: var(--color-neon-yellow);">📥 NHẬP FILE</button>
+          <button id="btn-export-word" class="btn btn-sm" style="border-color: #4a9eff; color: #4a9eff;">📄 XUẤT WORD</button>
+          <button id="btn-export-csv" class="btn btn-sm" style="border-color: #a855f7; color: #a855f7;">📊 XUẤT CSV</button>
+          <button id="btn-export-json" class="btn btn-sm" style="border-color: #64748b; color: #94a3b8;">💾 SAO LƯU</button>
           <button class="btn btn-sm btn-pink btn-back-menu">MENU</button>
         </div>
       </div>
+
+      <!-- Import File Input (Hidden) -->
+      <input type="file" id="file-import-input" accept=".txt,.csv,.xlsx,.xls" style="display: none;">
+
+      <!-- Filter Bar -->
+      <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+        <input type="text" id="vocab-search-input" class="cyber-input" placeholder="🔍 Tìm kiếm từ vựng tiếng Anh hoặc tiếng Việt..." style="flex: 1;">
+      </div>
+
       <div id="vocab-list" style="flex: 1; overflow-y: auto;"></div>
     </main>
 
