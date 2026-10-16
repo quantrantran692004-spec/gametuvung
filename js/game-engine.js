@@ -1,5 +1,7 @@
 import { AnswerChecker } from './answer-checker.js';
 import { audioManager } from './audio-manager.js';
+import { SpacedRepetition } from './spaced-repetition.js';
+import { vocabManager } from './vocab-manager.js';
 
 export class GameEngine {
   constructor(canvas, options = {}) {
@@ -192,6 +194,12 @@ export class GameEngine {
       // Voice Pronounce target or english word
       if (this.options.voiceEnabled) {
         audioManager.speak(hitWord.rawItem.english);
+      }
+
+      // Update Spaced Repetition mastery
+      if (hitWord.rawItem && hitWord.rawItem.id) {
+        const updatedWord = SpacedRepetition.reviewWord(hitWord.rawItem, true, 1.5);
+        vocabManager.updateWord(hitWord.rawItem.id, updatedWord);
       }
 
       // Remove word
