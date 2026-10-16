@@ -4,8 +4,8 @@
   "description": "Game học từ vựng tiếng Anh bắn chữ phong cách Cyberpunk Neon",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#0a0a1a",
-  "theme_color": "#00ffff",
+  "background_color": "#f4f7fb",
+  "theme_color": "#3867e8",
   "orientation": "any",
   "icons": [
     {

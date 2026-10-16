@@ -17,8 +17,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="./css/main.css?v=12">
-  <link rel="stylesheet" href="./css/game.css?v=12">
+  <link rel="stylesheet" href="./css/main.css?v=13">
+  <link rel="stylesheet" href="./css/game.css?v=13">
 
   <!-- Document Export & Import Libraries (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.js"></script>
@@ -41,18 +41,18 @@
     </header>
 
     <!-- SCREEN: MAIN MENU -->
-    <main id="screen-main-menu" class="screen active" style="justify-content: center; align-items: center; text-align: center;">
-      <div style="margin-bottom: 30px;">
-        <h1 class="neon-title" style="font-size: clamp(32px, 6vw, 56px); margin-bottom: 10px;">WORD SHOOTER</h1>
-        <p style="color: var(--color-text-muted); font-size: 14px; letter-spacing: 3px; text-transform: uppercase;">
-          Cyberpunk Vocabulary Defense
-        </p>
-      </div>
+    <main id="screen-main-menu" class="screen active">
+      <div class="menu-shell">
+        <section class="menu-hero">
+          <div class="eyebrow">ENGLISH PRACTICE GAME</div>
+          <h1 class="neon-title">WORD SHOOTER</h1>
+          <p>Nghe, nhớ và gõ từ tiếng Anh để bắn mục tiêu.</p>
+          <div class="menu-pills"><span>Học từ</span><span>Nghe câu</span><span>Phản xạ</span></div>
+        </section>
 
-      <!-- Mode Selector -->
-      <div style="margin-bottom: 25px; width: 100%; max-width: 360px;">
-        <label style="font-size: 12px; color: var(--color-neon-pink); display: block; margin-bottom: 8px; text-transform: uppercase;">Chọn chế độ chơi (Mục 5 Đặc tả):</label>
-        <select id="game-mode-select" class="cyber-input" style="text-align: center;">
+        <section class="menu-panel">
+          <label for="game-mode-select">Chọn chế độ chơi</label>
+          <select id="game-mode-select" class="cyber-input">
           <option value="survival">1. Sinh tồn (Mặc định 5 mạng)</option>
           <option value="practice">2. Luyện tập tự do</option>
           <option value="timed">3. Chơi tính giờ (30s / 60s / 120s)</option>
@@ -63,23 +63,14 @@
           <option value="two_players">8. Đấu luân phiên 2 người (1 Thiết bị)</option>
           <option value="high_score">9. Thử thách điểm cao (Tốc độ tăng dần)</option>
           <option value="dictation">10. Nghe câu tiếng Anh & chép chính tả</option>
-        </select>
-      </div>
-
-      <!-- Action Buttons -->
-      <div style="display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 320px;">
-        <button id="btn-to-game" class="btn" style="padding: 16px; font-size: 16px;">
-          🧩 TẠO ĐỀ
-        </button>
-        <button id="btn-to-vocab" class="btn btn-pink">
-          📚 KHO TỪ VỰNG
-        </button>
-        <button id="btn-to-stats" class="btn btn-green">
-          📊 THỐNG KÊ CHIẾN TÍCH
-        </button>
-        <button id="btn-to-settings" class="btn" style="border-color: #8a99ad; color: #8a99ad;">
-          ⚙ CÀI ĐẶT
-        </button>
+          </select>
+          <button id="btn-to-game" class="btn btn-primary menu-start">🧩 TẠO ĐỀ <span>→</span></button>
+          <div class="menu-secondary">
+            <button id="btn-to-vocab" class="btn btn-pink">📚 Kho từ</button>
+            <button id="btn-to-stats" class="btn btn-green">📊 Thống kê</button>
+            <button id="btn-to-settings" class="btn">⚙ Cài đặt</button>
+          </div>
+        </section>
       </div>
     </main>
 
@@ -375,6 +366,6 @@
   </div>
 
   <!-- Entry Script with Cache Busting -->
-  <script type="module" src="./js/app.js?v=12"></script>
+  <script type="module" src="./js/app.js?v=13"></script>
 </body>
 </html>

@@ -405,3 +405,22 @@
 .stat-label { color: var(--ui-muted, #aebbd0); font-size: 11px; }
 .stat-value { color: var(--ui-text, #f5f7fb); font-size: 22px; margin-top: 4px; }
 .mobile-controls { display: none; }
+
+/* Light controls with a dark high-contrast playfield */
+.game-hud { background: #fff; border-color: #d7e0ee; box-shadow: 0 4px 14px rgba(30,55,95,.08); }
+.hud-item { background: #f4f7fb; }
+.hud-item > span:first-child { color: #53647d !important; }
+.hud-value { color: #3867e8; }
+.combo-bar-bg { background: #dce5f2; }
+.canvas-wrapper { background: #10192b; border-color: #c8d5e7; box-shadow: inset 0 0 24px rgba(0,0,0,.28); }
+.game-input { background: #fff; color: #17233b; border-color: #3867e8; box-shadow: 0 3px 12px rgba(56,103,232,.10); }
+.game-input::placeholder { color: #73829a; }
+.virtual-keyboard { background: #fff; border-color: #d7e0ee; box-shadow: 0 4px 14px rgba(30,55,95,.08); }
+.vk-key { background: #eef3fb; border-color: #c8d5e7; color: #23385e; }
+.vk-key:active { background: #3867e8; color: #fff; }
+#game-speak-btn { background: #f1fbf7; color: #087452; }
+#game-fire-btn { background: #fff5f7; color: #c23857; }
+
+@media (max-width: 700px) {
+  .game-hud { box-shadow: 0 3px 10px rgba(30,55,95,.08); }
+}

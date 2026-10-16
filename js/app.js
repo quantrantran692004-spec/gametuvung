@@ -1,15 +1,15 @@
-import { db } from './db.js?v=12';
-import { profileManager } from './profile-manager.js?v=12';
-import { vocabManager } from './vocab-manager.js?v=12';
-import { statsManager } from './stats-manager.js?v=12';
-import { uiManager } from './ui-manager.js?v=12';
-import { GameEngine } from './game-engine.js?v=12';
-import { t, setLanguage } from './i18n.js?v=12';
-import { FileImporter } from './importer.js?v=12';
-import { DocExporter } from './doc-exporter.js?v=12';
-import { SpacedRepetition } from './spaced-repetition.js?v=12';
-import { getPracticeSentences } from './sentence-manager.js?v=12';
-import { audioManager } from './audio-manager.js?v=12';
+import { db } from './db.js?v=13';
+import { profileManager } from './profile-manager.js?v=13';
+import { vocabManager } from './vocab-manager.js?v=13';
+import { statsManager } from './stats-manager.js?v=13';
+import { uiManager } from './ui-manager.js?v=13';
+import { GameEngine } from './game-engine.js?v=13';
+import { t, setLanguage } from './i18n.js?v=13';
+import { FileImporter } from './importer.js?v=13';
+import { DocExporter } from './doc-exporter.js?v=13';
+import { SpacedRepetition } from './spaced-repetition.js?v=13';
+import { getPracticeSentences } from './sentence-manager.js?v=13';
+import { audioManager } from './audio-manager.js?v=13';
 
 class App {
   constructor() {
@@ -32,18 +32,20 @@ class App {
 
       // 4. Register Service Worker for PWA
       if ('serviceWorker' in navigator) {
-        const registration = await navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' });
-        registration.update().catch(() => {});
-        if (registration.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-          if (!sessionStorage.getItem('ws-sw-refreshed')) {
-            sessionStorage.setItem('ws-sw-refreshed', '1');
-            window.location.reload();
-          }
-        });
-      } catch (err) {
+        try {
+          const registration = await navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' });
+          registration.update().catch(() => {});
+          if (registration.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+          navigator.serviceWorker.addEventListener('controllerchange', () => {
+            const refreshKey = 'ws-sw-refreshed-v12';
+            if (!sessionStorage.getItem(refreshKey)) {
+              sessionStorage.setItem(refreshKey, '1');
+              window.location.reload();
+            }
+          });
+        } catch (err) {
           console.log('ServiceWorker registration error:', err);
-      }
+        }
       }
 
       // 5. Setup Event Listeners
