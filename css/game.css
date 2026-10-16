@@ -435,3 +435,17 @@
   .hud-weapon-item { min-width: 72px; }
   .hud-weapon-value { font-size: 9px; }
 }
+
+/* Light-theme stats and form surfaces */
+.stat-box {
+  background: #fff;
+  border: 1px solid #d7e0ee;
+  border-left: 4px solid #3867e8;
+  box-shadow: 0 6px 18px rgba(30,55,95,.08);
+}
+.stat-label { color: #53647d; }
+.stat-value { color: #17233b; }
+#screen-stats h2, #screen-vocab h2, #screen-settings h2, #screen-profiles h2 { color: #17233b; }
+#screen-settings .cyber-card, #screen-profiles .cyber-card { background: #fff; border-color: #d7e0ee; }
+#screen-settings label, #screen-settings .setting-label { color: #53647d; }
+#screen-settings .cyber-input, #screen-settings select, #screen-settings input[type="number"] { color: #17233b; background: #f8faff; border-color: #c7d3e5; }

@@ -1,7 +1,7 @@
-import { t } from './i18n.js?v=16';
-import { vocabManager } from './vocab-manager.js?v=16';
-import { profileManager } from './profile-manager.js?v=16';
-import { statsManager } from './stats-manager.js?v=16';
+import { t } from './i18n.js?v=17';
+import { vocabManager } from './vocab-manager.js?v=17';
+import { profileManager } from './profile-manager.js?v=17';
+import { statsManager } from './stats-manager.js?v=17';
 
 export class UIManager {
   constructor() {
@@ -10,6 +10,7 @@ export class UIManager {
   }
 
   showScreen(screenId) {
+    document.querySelectorAll('.modal-overlay.active').forEach(modal => modal.classList.remove('active'));
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     const target = document.getElementById(screenId);
     if (target) {
