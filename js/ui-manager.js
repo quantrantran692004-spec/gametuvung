@@ -1,7 +1,7 @@
-import { t } from './i18n.js?v=17';
-import { vocabManager } from './vocab-manager.js?v=17';
-import { profileManager } from './profile-manager.js?v=17';
-import { statsManager } from './stats-manager.js?v=17';
+import { t } from './i18n.js?v=18';
+import { vocabManager } from './vocab-manager.js?v=18';
+import { profileManager } from './profile-manager.js?v=18';
+import { statsManager } from './stats-manager.js?v=18';
 
 export class UIManager {
   constructor() {

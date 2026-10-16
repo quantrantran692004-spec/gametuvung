@@ -449,3 +449,60 @@
 #screen-settings .cyber-card, #screen-profiles .cyber-card { background: #fff; border-color: #d7e0ee; }
 #screen-settings label, #screen-settings .setting-label { color: #53647d; }
 #screen-settings .cyber-input, #screen-settings select, #screen-settings input[type="number"] { color: #17233b; background: #f8faff; border-color: #c7d3e5; }
+
+/* Phone-first answer entry: use only the in-game keyboard. */
+.game-controls { display: none !important; }
+.keyboard-caption {
+  color: #53647d;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-align: center;
+  padding: 2px 0 5px;
+}
+.game-input {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  left: -9999px !important;
+}
+.virtual-keyboard {
+  display: none;
+  margin-top: 8px;
+  padding: 8px 5px 10px;
+  gap: 6px;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid #d7e0ee;
+  box-shadow: 0 5px 18px rgba(30,55,95,.10);
+  touch-action: manipulation;
+}
+.vk-row { gap: 5px; }
+.vk-key {
+  flex: 1 1 0;
+  width: auto;
+  max-width: none;
+  min-width: 0;
+  height: clamp(38px, 10vw, 48px);
+  border: 1px solid #c7d3e5;
+  border-radius: 9px;
+  background: #f3f6fb;
+  color: #20375f;
+  font-family: var(--font-title);
+  font-size: clamp(12px, 3.5vw, 16px);
+  font-weight: 800;
+  -webkit-tap-highlight-color: transparent;
+}
+.vk-key:active { background: #3867e8; border-color: #3867e8; color: #fff; transform: translateY(1px); }
+.vk-action { background: #eaf0fb; color: #3867e8; border-color: #b8c8e3; }
+.vk-backspace { flex: 1.35; }
+@media (max-width: 820px), (pointer: coarse) {
+  .virtual-keyboard { display: flex; }
+}
+@media (max-width: 380px) {
+  .virtual-keyboard { padding-left: 3px; padding-right: 3px; gap: 4px; }
+  .vk-row { gap: 3px; }
+  .vk-key { height: 37px; font-size: 12px; border-radius: 7px; }
+}

@@ -1,7 +1,7 @@
-import { AnswerChecker } from './answer-checker.js?v=17';
-import { audioManager } from './audio-manager.js?v=17';
-import { SpacedRepetition } from './spaced-repetition.js?v=17';
-import { vocabManager } from './vocab-manager.js?v=17';
+import { AnswerChecker } from './answer-checker.js?v=18';
+import { audioManager } from './audio-manager.js?v=18';
+import { SpacedRepetition } from './spaced-repetition.js?v=18';
+import { vocabManager } from './vocab-manager.js?v=18';
 
 export class GameEngine {
   constructor(canvas, options = {}) {
@@ -130,7 +130,8 @@ export class GameEngine {
   }
 
   spawnWord() {
-    if (this.activeWords.length >= (this.mode === 'dictation' ? 1 : 6)) return;
+    const maxActive = this.canvas.width < 500 ? 3 : 6;
+    if (this.activeWords.length >= (this.mode === 'dictation' ? 1 : maxActive)) return;
     if (!this.words || this.words.length === 0) return;
 
     // Pick random word
@@ -157,6 +158,10 @@ export class GameEngine {
     
     const speedBase = this.options.speed === 'fast' ? 0.7 : (this.options.speed === 'slow' ? 0.25 : 0.4);
 
+    const highestExistingY = this.activeWords.length
+      ? Math.min(...this.activeWords.map(word => word.y))
+      : null;
+    const spawnY = highestExistingY === null ? 18 : highestExistingY - 92;
     const wordEntity = {
       id: Math.random().toString(36).substring(2, 8),
       prompt: displayPrompt,     // Nghĩa tiếng Việt hiển thị to ở trên
@@ -166,7 +171,7 @@ export class GameEngine {
       typedProgress: 0,         // Số ký tự đã gõ khớp
       rawItem: item,
       x: x,
-      y: 18,
+      y: spawnY,
       vy: speedBase * (0.8 + Math.random() * 0.3),
       width: approxWidth,
       height: 60,

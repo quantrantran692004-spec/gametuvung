@@ -1,15 +1,15 @@
-import { db } from './db.js?v=17';
-import { profileManager } from './profile-manager.js?v=17';
-import { vocabManager } from './vocab-manager.js?v=17';
-import { statsManager } from './stats-manager.js?v=17';
-import { uiManager } from './ui-manager.js?v=17';
-import { GameEngine } from './game-engine.js?v=17';
-import { t, setLanguage } from './i18n.js?v=17';
-import { FileImporter } from './importer.js?v=17';
-import { DocExporter } from './doc-exporter.js?v=17';
-import { SpacedRepetition } from './spaced-repetition.js?v=17';
-import { getPracticeSentences } from './sentence-manager.js?v=17';
-import { audioManager } from './audio-manager.js?v=17';
+import { db } from './db.js?v=18';
+import { profileManager } from './profile-manager.js?v=18';
+import { vocabManager } from './vocab-manager.js?v=18';
+import { statsManager } from './stats-manager.js?v=18';
+import { uiManager } from './ui-manager.js?v=18';
+import { GameEngine } from './game-engine.js?v=18';
+import { t, setLanguage } from './i18n.js?v=18';
+import { FileImporter } from './importer.js?v=18';
+import { DocExporter } from './doc-exporter.js?v=18';
+import { SpacedRepetition } from './spaced-repetition.js?v=18';
+import { getPracticeSentences } from './sentence-manager.js?v=18';
+import { audioManager } from './audio-manager.js?v=18';
 
 class App {
   constructor() {
@@ -200,10 +200,6 @@ class App {
         arena?.classList.add(correct ? 'feedback-correct' : 'feedback-wrong');
         if (correct) {
           uiManager.showToast(upgraded ? `NÂNG CẤP! Vũ khí: ${weapon}` : 'ĐÚNG! Mục tiêu đã bị bắn.', 'success');
-        } else {
-          uiManager.showToast(autoMiss
-            ? 'SAI! Mục tiêu đã biến mất, hãy chuyển sang mục tiêu tiếp theo.'
-            : `Sai đáp án: -${penalty} điểm, combo đã reset.`, 'error');
         }
       },
       onGameOver: async (result) => {
@@ -239,10 +235,9 @@ class App {
       this.game.resizeCanvas();
     }, 50);
 
-    // Focus input
+    // Không focus input: trên điện thoại chỉ dùng bàn phím ảo của game.
     setTimeout(() => {
       input.value = '';
-      input.focus();
     }, 150);
 
     // Get vocab words based on mode (Section 5)
@@ -390,8 +385,6 @@ class App {
         }
 
         input.dispatchEvent(new Event('input', { bubbles: true }));
-        const hit = this.game.updateTypingProgress(input.value);
-        if (hit) input.value = '';
       });
     });
 

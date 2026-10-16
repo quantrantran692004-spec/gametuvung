@@ -17,8 +17,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="./css/main.css?v=17">
-  <link rel="stylesheet" href="./css/game.css?v=17">
+  <link rel="stylesheet" href="./css/main.css?v=18">
+  <link rel="stylesheet" href="./css/game.css?v=18">
 
   <!-- Document Export & Import Libraries (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.js"></script>
@@ -128,7 +128,7 @@
         </div>
 
         <!-- Controls -->
-        <div class="game-controls">
+        <div class="game-controls" aria-hidden="true">
           <div class="input-container">
             <input type="text" id="game-input" class="game-input" inputmode="text" placeholder="Gõ đáp án tại đây..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
           </div>
@@ -137,7 +137,8 @@
         </div>
 
         <!-- Virtual Keyboard (Hiển thị tự động trên Mobile/Tablet) -->
-        <div id="virtual-keyboard" class="virtual-keyboard">
+        <div id="virtual-keyboard" class="virtual-keyboard" aria-label="Bàn phím nhập đáp án">
+          <div class="keyboard-caption">BÀN PHÍM TRẢ LỜI</div>
           <div class="vk-row">
             <button type="button" class="vk-key" data-key="q">Q</button>
             <button type="button" class="vk-key" data-key="w">W</button>
@@ -371,6 +372,6 @@
   </div>
 
   <!-- Entry Script with Cache Busting -->
-  <script type="module" src="./js/app.js?v=17"></script>
+  <script type="module" src="./js/app.js?v=18"></script>
 </body>
 </html>
