@@ -1,15 +1,15 @@
-import { db } from './db.js?v=7';
-import { profileManager } from './profile-manager.js?v=7';
-import { vocabManager } from './vocab-manager.js?v=7';
-import { statsManager } from './stats-manager.js?v=7';
-import { uiManager } from './ui-manager.js?v=7';
-import { GameEngine } from './game-engine.js?v=7';
-import { t, setLanguage } from './i18n.js?v=7';
-import { FileImporter } from './importer.js?v=7';
-import { DocExporter } from './doc-exporter.js?v=7';
-import { SpacedRepetition } from './spaced-repetition.js?v=7';
-import { getPracticeSentences } from './sentence-manager.js?v=7';
-import { audioManager } from './audio-manager.js?v=7';
+import { db } from './db.js?v=8';
+import { profileManager } from './profile-manager.js?v=8';
+import { vocabManager } from './vocab-manager.js?v=8';
+import { statsManager } from './stats-manager.js?v=8';
+import { uiManager } from './ui-manager.js?v=8';
+import { GameEngine } from './game-engine.js?v=8';
+import { t, setLanguage } from './i18n.js?v=8';
+import { FileImporter } from './importer.js?v=8';
+import { DocExporter } from './doc-exporter.js?v=8';
+import { SpacedRepetition } from './spaced-repetition.js?v=8';
+import { getPracticeSentences } from './sentence-manager.js?v=8';
+import { audioManager } from './audio-manager.js?v=8';
 
 class App {
   constructor() {
@@ -326,7 +326,7 @@ class App {
 
     // Virtual Keyboard buttons (Dành cho điện thoại / máy tính bảng cảm ứng)
     document.querySelectorAll('.vk-key').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('pointerdown', (e) => {
         e.preventDefault();
         if (!this.game || !this.game.isRunning || !input) return;
 
@@ -339,6 +339,7 @@ class App {
           input.value += key;
         }
 
+        input.dispatchEvent(new Event('input', { bubbles: true }));
         const hit = this.game.updateTypingProgress(input.value);
         if (hit) input.value = '';
       });

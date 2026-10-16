@@ -90,7 +90,13 @@ class AudioManager {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = lang;
-      utterance.rate = 0.9;
+      utterance.rate = 0.72;
+      utterance.pitch = 1;
+      utterance.volume = 1;
+      const voices = window.speechSynthesis.getVoices();
+      const preferred = voices.find(v => v.lang?.toLowerCase() === lang.toLowerCase())
+        || voices.find(v => v.lang?.toLowerCase().startsWith('en'));
+      if (preferred) utterance.voice = preferred;
       window.speechSynthesis.speak(utterance);
     } catch (e) {
       console.warn('Speech synthesis error:', e);

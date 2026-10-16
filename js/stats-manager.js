@@ -1,4 +1,4 @@
-import { db } from './db.js?v=7';
+import { db } from './db.js?v=8';
 
 export class StatsManager {
   async saveSession(sessionData) {

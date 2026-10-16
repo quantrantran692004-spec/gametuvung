@@ -1,7 +1,7 @@
-import { AnswerChecker } from './answer-checker.js?v=7';
-import { audioManager } from './audio-manager.js?v=7';
-import { SpacedRepetition } from './spaced-repetition.js?v=7';
-import { vocabManager } from './vocab-manager.js?v=7';
+import { AnswerChecker } from './answer-checker.js?v=8';
+import { audioManager } from './audio-manager.js?v=8';
+import { SpacedRepetition } from './spaced-repetition.js?v=8';
+import { vocabManager } from './vocab-manager.js?v=8';
 
 export class GameEngine {
   constructor(canvas, options = {}) {
@@ -151,7 +151,7 @@ export class GameEngine {
       typedProgress: 0,         // Số ký tự đã gõ khớp
       rawItem: item,
       x: x,
-      y: 80,
+      y: 18,
       vy: speedBase * (0.8 + Math.random() * 0.3),
       width: approxWidth,
       height: 60,
