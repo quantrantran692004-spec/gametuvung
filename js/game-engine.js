@@ -122,22 +122,25 @@ export class GameEngine {
     const targetAnswer = isEnToVi ? item.vietnamese : item.english;
     const subPrompt = isEnToVi ? (item.ipa || '') : '';
 
-    const padding = 60;
-    const x = padding + Math.random() * Math.max(50, (this.canvas.width - padding * 2 - 120));
+    const padding = 20;
+    // Dynamic width based on text length
+    const approxWidth = Math.max(160, Math.max(displayPrompt.length, targetAnswer.length) * 11 + 30);
+    const maxX = Math.max(20, this.canvas.width - approxWidth - padding);
+    const x = padding + Math.random() * maxX;
     
     const speedBase = this.options.speed === 'fast' ? 1.4 : (this.options.speed === 'slow' ? 0.6 : 0.9);
 
     const wordEntity = {
       id: Math.random().toString(36).substring(2, 8),
       prompt: displayPrompt,
-      subPrompt: subPrompt,
+      subPrompt: isEnToVi ? `[Nhập nghĩa: ${targetAnswer}]` : `[Gõ từ: ${targetAnswer}]`,
       target: targetAnswer,
       rawItem: item,
       x: x,
-      y: 0,
+      y: -50, // Start slightly above screen and fall down smoothly
       vy: speedBase * (0.8 + Math.random() * 0.4),
-      width: 140,
-      height: 45,
+      width: approxWidth,
+      height: 52,
       glow: '#00ffff'
     };
 
@@ -152,10 +155,25 @@ export class GameEngine {
 
     for (let i = 0; i < this.activeWords.length; i++) {
       const w = this.activeWords[i];
-      const checkRes = AnswerChecker.check(input, w.target, {
+      // Check target answer first
+      let checkRes = AnswerChecker.check(input, w.target, {
         caseSensitive: this.options.caseSensitive,
         acceptTypos: this.options.acceptTypos
       });
+
+      // Also allow typing the english word directly or vietnamese meaning
+      if (!checkRes.correct && w.rawItem) {
+        checkRes = AnswerChecker.check(input, w.rawItem.english, {
+          caseSensitive: this.options.caseSensitive,
+          acceptTypos: this.options.acceptTypos
+        });
+      }
+      if (!checkRes.correct && w.rawItem) {
+        checkRes = AnswerChecker.check(input, w.rawItem.vietnamese, {
+          caseSensitive: this.options.caseSensitive,
+          acceptTypos: this.options.acceptTypos
+        });
+      }
 
       if (checkRes.correct) {
         hitIndex = i;
@@ -344,16 +362,16 @@ export class GameEngine {
 
       // Text Prompt
       this.ctx.fillStyle = '#ffffff';
-      this.ctx.font = 'bold 15px "Orbitron", sans-serif';
+      this.ctx.font = 'bold 16px "Orbitron", sans-serif';
       this.ctx.textAlign = 'center';
       this.ctx.shadowBlur = 0;
-      this.ctx.fillText(w.prompt, w.x + w.width / 2, w.y + (w.subPrompt ? 22 : 28));
+      this.ctx.fillText(w.prompt, w.x + w.width / 2, w.y + 24);
 
-      // SubPrompt (IPA or Hint)
+      // SubPrompt (Hint / Translation)
       if (w.subPrompt) {
-        this.ctx.fillStyle = '#8a99ad';
-        this.ctx.font = '11px "Share Tech Mono", monospace';
-        this.ctx.fillText(w.subPrompt, w.x + w.width / 2, w.y + 38);
+        this.ctx.fillStyle = '#00ffff';
+        this.ctx.font = '12px "Share Tech Mono", monospace';
+        this.ctx.fillText(w.subPrompt, w.x + w.width / 2, w.y + 42);
       }
 
       this.ctx.restore();
