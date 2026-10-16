@@ -338,3 +338,96 @@ h1, h2, h3, h4 {
     padding: 8px 12px;
   }
 }
+
+/* Product layout refresh: calmer, clearer and mobile-first */
+#screen-main-menu {
+  justify-content: flex-start !important;
+  align-items: stretch !important;
+  text-align: left !important;
+  max-width: 920px;
+  margin: 0 auto;
+  padding: clamp(28px, 8vh, 88px) clamp(16px, 5vw, 56px) 36px !important;
+}
+
+#screen-main-menu > div:first-child {
+  margin: 0 auto 28px !important;
+  max-width: 680px;
+  width: 100%;
+}
+
+#screen-main-menu .neon-title {
+  text-align: left;
+  font-size: clamp(34px, 7vw, 62px) !important;
+  letter-spacing: -1px;
+}
+
+#screen-main-menu > div:nth-of-type(2) {
+  margin: 0 auto 18px !important;
+  max-width: 680px !important;
+}
+
+#screen-main-menu > div:last-child {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px !important;
+  max-width: 680px !important;
+  margin: 0 auto;
+}
+
+#screen-main-menu > div:last-child .btn:first-child {
+  grid-column: 1 / -1;
+  min-height: 58px;
+  font-size: 16px !important;
+}
+
+#screen-main-menu > div:last-child .btn {
+  min-height: 48px;
+  border-radius: 10px;
+}
+
+#screen-ready {
+  padding: clamp(16px, 5vw, 56px) !important;
+}
+
+#screen-ready .ready-card {
+  border-radius: 18px;
+  padding: clamp(22px, 5vw, 40px) !important;
+  margin: auto;
+}
+
+#screen-ready .ready-card > div:last-child {
+  flex-wrap: wrap;
+}
+
+.cyber-card, .modal-content {
+  border-radius: 14px;
+}
+
+.btn {
+  min-height: 44px;
+  border-radius: 10px;
+  font-weight: 700;
+  letter-spacing: .7px;
+}
+
+@media (max-width: 600px) {
+  body { font-family: var(--font-title); }
+  .top-nav { padding: 10px 14px; }
+  .top-nav > div:first-child { font-size: 13px !important; }
+  #screen-main-menu .neon-title { text-align: center; }
+  #screen-main-menu > div:first-child p { text-align: center; letter-spacing: 1px !important; }
+  #screen-main-menu > div:last-child { grid-template-columns: 1fr; }
+  #screen-main-menu > div:last-child .btn:first-child { grid-column: auto; }
+  #screen-main-menu > div:last-child .btn { width: 100%; }
+  .screen { padding: 10px; }
+  .game-hud { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 10px; }
+  .game-hud .hud-combo-meter { grid-column: 1 / -1; width: 100%; }
+  .game-hud .btn-back-menu { grid-column: 2; grid-row: 1; justify-self: end; }
+  .game-controls { gap: 8px; }
+  .input-container { flex: 1 1 100%; order: 1; }
+  #game-speak-btn, #game-fire-btn { flex: 1; order: 2; }
+  .game-input { min-height: 52px; font-size: 18px; }
+  .virtual-keyboard { padding: 8px 4px; gap: 4px; }
+  .vk-row { gap: 3px; }
+  .vk-key { height: 42px; font-size: 13px; }
+}
