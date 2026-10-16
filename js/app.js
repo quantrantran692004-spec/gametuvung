@@ -1,15 +1,15 @@
-import { db } from './db.js?v=15';
-import { profileManager } from './profile-manager.js?v=15';
-import { vocabManager } from './vocab-manager.js?v=15';
-import { statsManager } from './stats-manager.js?v=15';
-import { uiManager } from './ui-manager.js?v=15';
-import { GameEngine } from './game-engine.js?v=15';
-import { t, setLanguage } from './i18n.js?v=15';
-import { FileImporter } from './importer.js?v=15';
-import { DocExporter } from './doc-exporter.js?v=15';
-import { SpacedRepetition } from './spaced-repetition.js?v=15';
-import { getPracticeSentences } from './sentence-manager.js?v=15';
-import { audioManager } from './audio-manager.js?v=15';
+import { db } from './db.js?v=16';
+import { profileManager } from './profile-manager.js?v=16';
+import { vocabManager } from './vocab-manager.js?v=16';
+import { statsManager } from './stats-manager.js?v=16';
+import { uiManager } from './ui-manager.js?v=16';
+import { GameEngine } from './game-engine.js?v=16';
+import { t, setLanguage } from './i18n.js?v=16';
+import { FileImporter } from './importer.js?v=16';
+import { DocExporter } from './doc-exporter.js?v=16';
+import { SpacedRepetition } from './spaced-repetition.js?v=16';
+import { getPracticeSentences } from './sentence-manager.js?v=16';
+import { audioManager } from './audio-manager.js?v=16';
 
 class App {
   constructor() {
@@ -188,14 +188,18 @@ class App {
         if (hud.time !== undefined) {
           document.getElementById('hud-time-val').textContent = hud.time + 's';
         }
+        if (hud.weapon !== undefined) {
+          const weapon = document.getElementById('hud-weapon-val');
+          if (weapon) weapon.textContent = hud.weapon;
+        }
       },
-      onAnswerFeedback: ({ correct, penalty, autoMiss }) => {
+      onAnswerFeedback: ({ correct, penalty, autoMiss, upgraded, weapon }) => {
         const arena = document.querySelector('.game-container');
         arena?.classList.remove('feedback-correct', 'feedback-wrong');
         void arena?.offsetWidth;
         arena?.classList.add(correct ? 'feedback-correct' : 'feedback-wrong');
         if (correct) {
-          uiManager.showToast('ĐÚNG! Mục tiêu đã bị bắn.', 'success');
+          uiManager.showToast(upgraded ? `NÂNG CẤP! Vũ khí: ${weapon}` : 'ĐÚNG! Mục tiêu đã bị bắn.', 'success');
         } else {
           uiManager.showToast(autoMiss
             ? 'SAI! Mục tiêu đã biến mất, hãy chuyển sang mục tiêu tiếp theo.'

@@ -109,6 +109,26 @@ body {
   display: flex;
 }
 
+#screen-ready.active {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100vw;
+  height: 100vh;
+  padding: 20px;
+  overflow: auto;
+  background: rgba(18, 35, 65, .28);
+  backdrop-filter: blur(5px);
+}
+#screen-ready .ready-card {
+  margin: auto;
+  max-height: min(88vh, 560px);
+  overflow: auto;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }

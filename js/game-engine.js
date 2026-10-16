@@ -1,7 +1,7 @@
-import { AnswerChecker } from './answer-checker.js?v=15';
-import { audioManager } from './audio-manager.js?v=15';
-import { SpacedRepetition } from './spaced-repetition.js?v=15';
-import { vocabManager } from './vocab-manager.js?v=15';
+import { AnswerChecker } from './answer-checker.js?v=16';
+import { audioManager } from './audio-manager.js?v=16';
+import { SpacedRepetition } from './spaced-repetition.js?v=16';
+import { vocabManager } from './vocab-manager.js?v=16';
 
 export class GameEngine {
   constructor(canvas, options = {}) {
@@ -15,6 +15,7 @@ export class GameEngine {
     this.words = [];
     this.activeWords = [];
     this.lasers = [];
+    this.projectiles = [];
     this.particles = [];
     
     this.score = 0;
@@ -57,6 +58,7 @@ export class GameEngine {
     this.activeWords = [];
     this.selectedTargetId = null;
     this.lasers = [];
+    this.projectiles = [];
     this.particles = [];
     
     this.score = 0;
@@ -77,7 +79,8 @@ export class GameEngine {
       score: this.score,
       lives: this.lives,
       combo: this.combo,
-      time: this.timeRemaining
+      time: this.timeRemaining,
+      weapon: this.getWeaponLabel()
     });
 
     this.startTimers();
@@ -114,6 +117,16 @@ export class GameEngine {
         }
       }, 1000);
     }
+  }
+
+  getWeaponLevel() {
+    if (this.wordsShot >= 8) return 3;
+    if (this.wordsShot >= 3) return 2;
+    return 1;
+  }
+
+  getWeaponLabel() {
+    return ['ĐẠN ĐƠN', 'ĐẠN ĐƠN', '2 NÒNG', 'TÊN LỬA'][this.getWeaponLevel()];
   }
 
   spawnWord() {
@@ -288,15 +301,7 @@ export class GameEngine {
     this.score += (100 + comboBonus);
     this.wordsShot++;
 
-    // Laser Beam from bottom center to word
-    this.lasers.push({
-      x1: this.canvas.width / 2,
-      y1: this.canvas.height - 20,
-      x2: hitWord.x + hitWord.width / 2,
-      y2: hitWord.y + hitWord.height / 2,
-      alpha: 1.0,
-      color: '#FF5C8A'
-    });
+    this.fireWeaponAt(hitWord);
 
     // Explosion Particles
     this.createExplosion(hitWord.x + hitWord.width / 2, hitWord.y + hitWord.height / 2);
@@ -323,9 +328,39 @@ export class GameEngine {
     this.onHudUpdate({
       score: this.score,
       combo: this.combo,
-      lives: this.lives
+      lives: this.lives,
+      weapon: this.getWeaponLabel()
     });
-    this.onAnswerFeedback({ correct: true, score: this.score, combo: this.combo });
+    this.onAnswerFeedback({
+      correct: true,
+      score: this.score,
+      combo: this.combo,
+      upgraded: this.wordsShot === 3 || this.wordsShot === 8,
+      weapon: this.getWeaponLabel()
+    });
+  }
+
+  fireWeaponAt(target) {
+    const level = this.getWeaponLevel();
+    const targetX = target.x + target.width / 2;
+    const targetY = target.y + target.height / 2;
+    const base = { x1: this.canvas.width / 2, y1: this.canvas.height - 28, targetX, targetY };
+    const offsets = level === 2 ? [-12, 12] : [0];
+    offsets.forEach(offset => {
+      this.projectiles.push({
+        ...base,
+        x1: base.x1 + offset,
+        progress: 0,
+        speed: level === 3 ? 0.065 : 0.11,
+        type: level === 3 ? 'missile' : 'bullet',
+        color: level === 3 ? '#FF9F43' : (level === 2 ? '#67E8A5' : '#FF5C8A')
+      });
+    });
+    this.lasers.push({
+      x1: base.x1, y1: base.y1, x2: targetX, y2: targetY,
+      alpha: level === 3 ? 0.35 : 0.65,
+      color: level === 3 ? '#FF9F43' : '#FF5C8A'
+    });
   }
 
   createExplosion(x, y, forcedColor = null) {
@@ -394,6 +429,20 @@ export class GameEngine {
       }
     }
 
+    for (let i = this.projectiles.length - 1; i >= 0; i--) {
+      const p = this.projectiles[i];
+      p.progress += p.speed;
+      if (p.progress >= 1) {
+        this.projectiles.splice(i, 1);
+        continue;
+      }
+      p.x = p.x1 + (p.targetX - p.x1) * p.progress;
+      p.y = p.y1 + (p.targetY - p.y1) * p.progress;
+      if (p.type === 'missile' && Math.random() > 0.45) {
+        this.particles.push({ x: p.x, y: p.y, vx: (Math.random() - .5), vy: 1.5, life: .7, decay: .08, color: '#FF9F43' });
+      }
+    }
+
     // Update particles
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];
@@ -421,6 +470,36 @@ export class GameEngine {
       this.ctx.moveTo(l.x1, l.y1);
       this.ctx.lineTo(l.x2, l.y2);
       this.ctx.stroke();
+      this.ctx.restore();
+    }
+
+    // Draw physical projectiles on top of the beam.
+    for (const p of this.projectiles) {
+      this.ctx.save();
+      this.ctx.translate(p.x, p.y);
+      const angle = Math.atan2(p.targetY - p.y1, p.targetX - p.x1);
+      this.ctx.rotate(angle);
+      this.ctx.fillStyle = p.color;
+      this.ctx.strokeStyle = '#ffffff';
+      this.ctx.shadowColor = p.color;
+      this.ctx.shadowBlur = p.type === 'missile' ? 20 : 12;
+      if (p.type === 'missile') {
+        this.ctx.beginPath();
+        this.ctx.moveTo(13, 0);
+        this.ctx.lineTo(-9, -6);
+        this.ctx.lineTo(-6, 0);
+        this.ctx.lineTo(-9, 6);
+        this.ctx.closePath();
+        this.ctx.fill();
+        this.ctx.stroke();
+        this.ctx.fillStyle = '#FFE08A';
+        this.ctx.fillRect(-13, -3, 6, 6);
+      } else {
+        this.ctx.beginPath();
+        this.ctx.roundRect(-11, -3, 22, 6, 3);
+        this.ctx.fill();
+        this.ctx.stroke();
+      }
       this.ctx.restore();
     }
 
@@ -537,15 +616,21 @@ export class GameEngine {
     // 2. Rotating Turret Barrel
     this.ctx.rotate(angle + Math.PI / 2); // Rotate towards target
 
-    // Dual Barrel Laser Cannons
-    this.ctx.fillStyle = '#FF5C8A';
-    this.ctx.shadowColor = '#FF5C8A';
+    const weaponLevel = this.getWeaponLevel();
+    // Barrel upgrades: single shot -> twin cannon -> missile launcher.
+    this.ctx.fillStyle = weaponLevel === 3 ? '#FF9F43' : '#FF5C8A';
+    this.ctx.shadowColor = this.ctx.fillStyle;
     this.ctx.shadowBlur = 16;
-    
-    // Left barrel
-    this.ctx.fillRect(-14, -58, 9, 44);
-    // Right barrel
-    this.ctx.fillRect(5, -58, 9, 44);
+    if (weaponLevel === 1) {
+      this.ctx.fillRect(-5, -62, 10, 48);
+    } else if (weaponLevel === 2) {
+      this.ctx.fillRect(-14, -58, 9, 44);
+      this.ctx.fillRect(5, -58, 9, 44);
+    } else {
+      this.ctx.fillRect(-13, -54, 26, 30);
+      this.ctx.fillStyle = '#FFE08A';
+      this.ctx.fillRect(-8, -62, 16, 8);
+    }
 
     // Turret Core Body
     this.ctx.fillStyle = '#4DE2D0';
