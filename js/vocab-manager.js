@@ -46,8 +46,39 @@ export class VocabManager {
     return this.words;
   }
 
-  getAll() {
-    return this.words;
+  async addMultipleWords(wordsArray) {
+    const added = [];
+    for (const w of wordsArray) {
+      if (!w.english || !w.vietnamese) continue;
+      const newWord = {
+        id: 'w_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+        english: w.english.trim().toLowerCase(),
+        vietnamese: w.vietnamese.trim(),
+        ipa: w.ipa ? w.ipa.trim() : '',
+        unit: w.unit ? w.unit.trim() : 'Imported',
+        masteryLevel: 0,
+        repetitions: 0,
+        intervalDays: 1,
+        easeFactor: 2.5,
+        isFavorite: false,
+        needsReview: true,
+        addedAt: new Date().toISOString()
+      };
+      await db.put('vocabulary', newWord);
+      this.words.push(newWord);
+      added.push(newWord);
+    }
+    return added;
+  }
+
+  search(query) {
+    if (!query || !query.trim()) return this.words;
+    const q = query.trim().toLowerCase();
+    return this.words.filter(w => 
+      w.english.toLowerCase().includes(q) || 
+      w.vietnamese.toLowerCase().includes(q) ||
+      (w.unit && w.unit.toLowerCase().includes(q))
+    );
   }
 
   async addWord(wordData) {
