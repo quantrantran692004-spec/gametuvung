@@ -17,8 +17,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="./css/main.css?v=13">
-  <link rel="stylesheet" href="./css/game.css?v=13">
+  <link rel="stylesheet" href="./css/main.css?v=14">
+  <link rel="stylesheet" href="./css/game.css?v=14">
 
   <!-- Document Export & Import Libraries (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.js"></script>
@@ -64,7 +64,8 @@
           <option value="high_score">9. Thử thách điểm cao (Tốc độ tăng dần)</option>
           <option value="dictation">10. Nghe câu tiếng Anh & chép chính tả</option>
           </select>
-          <button id="btn-to-game" class="btn btn-primary menu-start">🧩 TẠO ĐỀ <span>→</span></button>
+          <div id="mode-help" class="mode-help" aria-live="polite">Bắn từ: nhìn nghĩa tiếng Việt, gõ từ tiếng Anh; mục tiêu đúng sẽ bị bắn.</div>
+          <button id="btn-to-game" class="btn btn-primary menu-start">▶ VÀO CHƠI <span>→</span></button>
           <div class="menu-secondary">
             <button id="btn-to-vocab" class="btn btn-pink">📚 Kho từ</button>
             <button id="btn-to-stats" class="btn btn-green">📊 Thống kê</button>
@@ -366,6 +367,6 @@
   </div>
 
   <!-- Entry Script with Cache Busting -->
-  <script type="module" src="./js/app.js?v=13"></script>
+  <script type="module" src="./js/app.js?v=14"></script>
 </body>
 </html>

@@ -733,3 +733,17 @@ body { background: var(--color-bg); color: var(--color-text); }
 
 #screen-main-menu > div.menu-shell::after { content: none !important; display: none !important; }
 .menu-secondary .btn:first-child { grid-column: auto !important; min-height: 44px !important; font-size: 12px !important; }
+
+.mode-help {
+  min-height: 42px;
+  margin: 2px 0 14px;
+  padding: 10px 12px;
+  border-left: 3px solid #3867e8;
+  border-radius: 8px;
+  background: #f2f5ff;
+  color: #53647d;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.menu-start { font-size: 15px; }
+.ready-card h2 { color: #17233b; }

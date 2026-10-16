@@ -1,15 +1,15 @@
-import { db } from './db.js?v=13';
-import { profileManager } from './profile-manager.js?v=13';
-import { vocabManager } from './vocab-manager.js?v=13';
-import { statsManager } from './stats-manager.js?v=13';
-import { uiManager } from './ui-manager.js?v=13';
-import { GameEngine } from './game-engine.js?v=13';
-import { t, setLanguage } from './i18n.js?v=13';
-import { FileImporter } from './importer.js?v=13';
-import { DocExporter } from './doc-exporter.js?v=13';
-import { SpacedRepetition } from './spaced-repetition.js?v=13';
-import { getPracticeSentences } from './sentence-manager.js?v=13';
-import { audioManager } from './audio-manager.js?v=13';
+import { db } from './db.js?v=14';
+import { profileManager } from './profile-manager.js?v=14';
+import { vocabManager } from './vocab-manager.js?v=14';
+import { statsManager } from './stats-manager.js?v=14';
+import { uiManager } from './ui-manager.js?v=14';
+import { GameEngine } from './game-engine.js?v=14';
+import { t, setLanguage } from './i18n.js?v=14';
+import { FileImporter } from './importer.js?v=14';
+import { DocExporter } from './doc-exporter.js?v=14';
+import { SpacedRepetition } from './spaced-repetition.js?v=14';
+import { getPracticeSentences } from './sentence-manager.js?v=14';
+import { audioManager } from './audio-manager.js?v=14';
 
 class App {
   constructor() {
@@ -70,6 +70,26 @@ class App {
 
   setupNavigation() {
     // Menu buttons
+    const modeSelect = document.getElementById('game-mode-select');
+    const modeHelp = document.getElementById('mode-help');
+    const modeDescriptions = {
+      survival: 'Bắn từ: nhìn nghĩa tiếng Việt, gõ từ tiếng Anh; sai bị trừ điểm và mất combo.',
+      practice: 'Luyện tập tự do: tốc độ nhẹ, tập trung vào việc nhớ từ và phản xạ.',
+      timed: 'Tính giờ: ghi điểm nhiều nhất trong thời gian đã chọn ở Cài đặt.',
+      unit: 'Theo Unit: chơi các từ thuộc bài học/Unit đã chọn trong kho từ.',
+      missed: 'Ôn từ sai: ưu tiên những từ bạn đã trả lời sai hoặc thường quên.',
+      favorites: 'Từ yêu thích: chỉ chơi các từ bạn đã đánh dấu yêu thích.',
+      srs: 'Ôn thông minh: ưu tiên các từ đã đến lịch ôn lặp lại ngắt quãng.',
+      two_players: 'Hai người: luân phiên trên cùng thiết bị; mỗi người có lượt riêng.',
+      high_score: 'Điểm cao: tốc độ tăng dần, thử phá kỷ lục của chính bạn.',
+      dictation: 'Nghe chép chính tả: nghe câu tiếng Anh, gõ đủ cả câu để tự động bắn.'
+    };
+    const updateModeHelp = () => {
+      if (modeHelp && modeSelect) modeHelp.textContent = modeDescriptions[modeSelect.value] || modeDescriptions.survival;
+    };
+    modeSelect?.addEventListener('change', updateModeHelp);
+    updateModeHelp();
+
     document.getElementById('btn-to-game')?.addEventListener('click', () => {
       this.prepareGame();
     });
@@ -275,6 +295,13 @@ class App {
       : (answer.length > 1 ? `${answer[0]}${'.'.repeat(answer.length - 1)}` : answer);
 
     this.pendingGame = { mode, words };
+    const modeTitles = {
+      dictation: 'NGHE CÂU & CHÉP CHÍNH TẢ',
+      survival: 'BẮN TỪ VỰNG · SINH TỒN',
+      practice: 'BẮN TỪ VỰNG · LUYỆN TẬP',
+      timed: 'BẮN TỪ VỰNG · TÍNH GIỜ'
+    };
+    document.querySelector('#screen-ready .ready-card > h2').textContent = modeTitles[mode] || 'SẴN SÀNG VÀO CHƠI';
     document.getElementById('ready-prompt').textContent = prompt;
     document.getElementById('ready-mask').textContent = mask;
     uiManager.showScreen('screen-ready');

@@ -1,7 +1,7 @@
-import { AnswerChecker } from './answer-checker.js?v=13';
-import { audioManager } from './audio-manager.js?v=13';
-import { SpacedRepetition } from './spaced-repetition.js?v=13';
-import { vocabManager } from './vocab-manager.js?v=13';
+import { AnswerChecker } from './answer-checker.js?v=14';
+import { audioManager } from './audio-manager.js?v=14';
+import { SpacedRepetition } from './spaced-repetition.js?v=14';
+import { vocabManager } from './vocab-manager.js?v=14';
 
 export class GameEngine {
   constructor(canvas, options = {}) {
@@ -171,28 +171,39 @@ export class GameEngine {
     if (!this.isRunning || this.isPaused) return false;
     const clean = input.trim().toLowerCase();
 
-    // Check if any word completely matches -> auto shoot!
-    for (let i = 0; i < this.activeWords.length; i++) {
-      const w = this.activeWords[i];
-      const targetClean = w.target.trim().toLowerCase();
-      const promptClean = w.prompt.trim().toLowerCase();
+    // Chỉ một mục tiêu được nhận ký tự, không làm lộ tiến độ sang các thẻ khác.
+    let targetIndex = -1;
+    if (clean) {
+      targetIndex = this.activeWords.findIndex(w => {
+        const target = w.target.trim().toLowerCase();
+        const prompt = w.prompt.trim().toLowerCase();
+        return target.startsWith(clean) || prompt.startsWith(clean);
+      });
+    }
+    if (targetIndex === -1) targetIndex = this.activeWords.findIndex(w => w.id === this.selectedTargetId);
+    if (targetIndex === -1) targetIndex = 0;
 
-      // Mọi ký tự đã gõ đều thay dấu chấm; đúng/sai chỉ quyết định màu.
-      w.typedText = clean;
-      w.typedProgress = clean.length;
-      w.isPrefixCorrect = !clean || targetClean.startsWith(clean);
-      if (clean && w.isPrefixCorrect) {
-        w.glow = '#67E8A5';
-      } else {
-        w.glow = clean ? '#FF6B91' : '#49D7C5';
-        w.errorUntil = performance.now() + 450;
-      }
+    const w = this.activeWords[targetIndex];
+    if (!w) return false;
+    this.selectedTargetId = w.id;
+    const targetClean = w.target.trim().toLowerCase();
+    const promptClean = w.prompt.trim().toLowerCase();
 
-      // Exact match reached -> AUTO SHOOT!
-      if (clean && (targetClean === clean || promptClean === clean)) {
-        this.triggerHit(i);
-        return true;
-      }
+    // Mọi ký tự đã gõ đều thay dấu chấm trên đúng thẻ đang chọn.
+    w.typedText = clean;
+    w.typedProgress = clean.length;
+    w.isPrefixCorrect = !clean || targetClean.startsWith(clean) || promptClean.startsWith(clean);
+    if (clean && w.isPrefixCorrect) {
+      w.glow = '#67E8A5';
+    } else {
+      w.glow = clean ? '#FF6B91' : '#49D7C5';
+      w.errorUntil = performance.now() + 450;
+    }
+
+    // Exact match reached -> AUTO SHOOT!
+    if (clean && (targetClean === clean || promptClean === clean)) {
+      this.triggerHit(targetIndex);
+      return true;
     }
     return false;
   }
