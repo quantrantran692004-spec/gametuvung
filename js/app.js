@@ -195,6 +195,16 @@ class App {
     const input = document.getElementById('game-input');
     const fireBtn = document.getElementById('game-fire-btn');
 
+    // Realtime typing check (Parroto Chép Chính Tả Style)
+    input?.addEventListener('input', () => {
+      if (!this.game) return;
+      const text = input.value;
+      const hit = this.game.updateTypingProgress(text);
+      if (hit) {
+        input.value = ''; // Auto clear when word is shot!
+      }
+    });
+
     const handleFire = () => {
       if (!this.game || !input) return;
       const text = input.value;
