@@ -121,6 +121,71 @@
   box-shadow: 0 0 15px rgba(255, 0, 127, 0.4);
 }
 
+/* Virtual Keyboard Styles */
+.virtual-keyboard {
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+  background: rgba(8, 10, 22, 0.95);
+  padding: 10px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  margin-top: 8px;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.vk-row {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+}
+
+.vk-key {
+  flex: 1;
+  max-width: 44px;
+  height: 44px;
+  background: #121630;
+  border: 1px solid #1f2752;
+  color: #fff;
+  border-radius: 6px;
+  font-family: var(--font-title);
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.1s, transform 0.1s, border-color 0.1s;
+}
+
+.vk-key:active {
+  background: var(--color-neon-cyan);
+  color: #0a0a1a;
+  transform: scale(0.95);
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.6);
+}
+
+.vk-action {
+  background: #1a1e3a;
+  border-color: var(--color-neon-pink);
+  color: var(--color-neon-pink);
+  font-size: 12px;
+}
+
+.vk-action:active {
+  background: var(--color-neon-pink);
+  color: #fff;
+}
+
+/* Tự động hiển thị bàn phím ảo trên điện thoại / máy tính bảng */
+@media (max-width: 820px), (pointer: coarse) {
+  .virtual-keyboard {
+    display: flex;
+  }
+}
+
 /* Game Over / Pause Overlays */
 .game-overlay {
   display: none;
