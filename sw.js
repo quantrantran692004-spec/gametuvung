@@ -1,4 +1,4 @@
-const CACHE_NAME = 'word-shooter-v20';
+const CACHE_NAME = 'word-shooter-v21';
 const ASSETS = [
   './', './index.html', './manifest.json',
   './css/main.css', './css/game.css',

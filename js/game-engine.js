@@ -55,6 +55,8 @@ export class GameEngine {
     this.resizeCanvas();
     this.mode = mode;
     this.words = [...vocabList];
+    // Rút từ từ một túi đã xáo trộn, không random lại cùng một từ liên tục.
+    this.wordQueue = [...this.words].sort(() => Math.random() - 0.5);
     this.activeWords = [];
     this.selectedTargetId = null;
     this.lasers = [];
@@ -134,8 +136,15 @@ export class GameEngine {
     if (this.activeWords.length >= (this.mode === 'dictation' ? 1 : maxActive)) return;
     if (!this.words || this.words.length === 0) return;
 
-    // Pick random word
-    const item = this.words[Math.floor(Math.random() * this.words.length)];
+    // Dùng hết một lượt danh sách rồi mới xáo trộn lại cho lượt kế tiếp.
+    const activeKeys = new Set(this.activeWords.map(word => this.getWordKey(word.rawItem)));
+    let item = this.wordQueue.find(candidate => !activeKeys.has(this.getWordKey(candidate)));
+    if (!item) {
+      this.wordQueue = [...this.words].sort(() => Math.random() - 0.5);
+      item = this.wordQueue.find(candidate => !activeKeys.has(this.getWordKey(candidate)));
+    }
+    if (!item) return;
+    this.wordQueue.splice(this.wordQueue.indexOf(item), 1);
     const direction = this.options.wordDirection || 'en-vi';
     const isEnToVi = direction === 'en-vi';
 
@@ -183,6 +192,10 @@ export class GameEngine {
     if (this.options.autoSpeak) {
       audioManager.speak(item.english, 'en-US');
     }
+  }
+
+  getWordKey(item) {
+    return String(item?.id || item?.english || item?.vietnamese || '').trim().toLowerCase();
   }
 
   // Realtime update while user is typing in the box
