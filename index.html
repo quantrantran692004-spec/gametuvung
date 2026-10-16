@@ -319,7 +319,21 @@
     </div>
   </div>
 
-  <!-- Entry Script -->
-  <script type="module" src="./js/app.js"></script>
+  <!-- Unregister old stale service workers to ensure fresh code -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        for (const registration of registrations) {
+          registration.unregister();
+        }
+      });
+      caches.keys().then(keys => {
+        keys.forEach(k => caches.delete(k));
+      });
+    }
+  </script>
+
+  <!-- Entry Script with Cache Busting -->
+  <script type="module" src="./js/app.js?v=2.2"></script>
 </body>
 </html>
