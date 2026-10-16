@@ -163,15 +163,30 @@ class App {
       input.focus();
     }, 150);
 
-    // Get vocab words based on mode
+    // Get vocab words based on mode (Section 5)
     let gameWords = [];
+    const allWords = vocabManager.getAll();
+
     if (selectedMode === 'srs') {
-      const allWords = vocabManager.getAll();
       const dueWords = SpacedRepetition.getDueWords(allWords);
       gameWords = dueWords.length >= 5 ? dueWords : vocabManager.getGameWords(30);
+    } else if (selectedMode === 'favorites') {
+      const favs = allWords.filter(w => w.isFavorite);
+      gameWords = favs.length > 0 ? favs : vocabManager.getGameWords(30);
+    } else if (selectedMode === 'missed') {
+      const missed = allWords.filter(w => w.needsReview || (w.incorrectCount && w.incorrectCount > 0));
+      gameWords = missed.length > 0 ? missed : vocabManager.getGameWords(30);
     } else {
       gameWords = vocabManager.getGameWords(30);
     }
+
+    // Pass custom effects config to engine
+    this.game.effectsConfig = {
+      neon: settings.effectNeon !== false,
+      laser: settings.effectLaser !== false,
+      particles: settings.effectParticles !== false,
+      shake: settings.effectShake !== false
+    };
 
     this.game.start(gameWords, selectedMode);
   }
@@ -345,6 +360,12 @@ class App {
     setVal('setting-direction', s.wordDirection || 'en-vi');
     setVal('setting-speed', s.speed || 'normal');
     setVal('setting-lives', s.lives || 5);
+    setVal('setting-timer', s.timerDuration || 60);
+    setVal('setting-strictness', s.strictness || 'lenient');
+    setChecked('effect-neon', s.effectNeon !== false);
+    setChecked('effect-laser', s.effectLaser !== false);
+    setChecked('effect-particles', s.effectParticles !== false);
+    setChecked('effect-shake', s.effectShake !== false);
     setChecked('setting-voice', s.voiceEnabled !== false);
     setChecked('setting-sound', s.soundEnabled !== false);
   }
@@ -358,6 +379,12 @@ class App {
         wordDirection: document.getElementById('setting-direction').value,
         speed: document.getElementById('setting-speed').value,
         lives: parseInt(document.getElementById('setting-lives').value, 10) || 5,
+        timerDuration: parseInt(document.getElementById('setting-timer').value, 10) || 60,
+        strictness: document.getElementById('setting-strictness').value,
+        effectNeon: document.getElementById('effect-neon').checked,
+        effectLaser: document.getElementById('effect-laser').checked,
+        effectParticles: document.getElementById('effect-particles').checked,
+        effectShake: document.getElementById('effect-shake').checked,
         voiceEnabled: document.getElementById('setting-voice').checked,
         soundEnabled: document.getElementById('setting-sound').checked
       };
@@ -368,7 +395,7 @@ class App {
       // Apply performance class to body
       document.body.className = `perf-${newSettings.perfProfile}`;
 
-      uiManager.showToast('Đã lưu cài đặt!', 'success');
+      uiManager.showToast('Đã lưu cài đặt chi tiết!', 'success');
     });
   }
 
