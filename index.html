@@ -118,9 +118,47 @@
         <!-- Controls -->
         <div class="game-controls">
           <div class="input-container">
-            <input type="text" id="game-input" class="game-input" placeholder="GÕ ĐÁP ÁN ĐỂ BẮN..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+            <input type="text" id="game-input" class="game-input" placeholder="GÕ TRỰC TIẾP TRÊN BÀN PHÍM..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
           </div>
           <button id="game-fire-btn" class="btn btn-pink" style="padding: 12px 20px;">BẮN</button>
+        </div>
+
+        <!-- Virtual Keyboard (Hiển thị tự động trên Mobile/Tablet) -->
+        <div id="virtual-keyboard" class="virtual-keyboard">
+          <div class="vk-row">
+            <button type="button" class="vk-key" data-key="q">Q</button>
+            <button type="button" class="vk-key" data-key="w">W</button>
+            <button type="button" class="vk-key" data-key="e">E</button>
+            <button type="button" class="vk-key" data-key="r">R</button>
+            <button type="button" class="vk-key" data-key="t">T</button>
+            <button type="button" class="vk-key" data-key="y">Y</button>
+            <button type="button" class="vk-key" data-key="u">U</button>
+            <button type="button" class="vk-key" data-key="i">I</button>
+            <button type="button" class="vk-key" data-key="o">O</button>
+            <button type="button" class="vk-key" data-key="p">P</button>
+          </div>
+          <div class="vk-row">
+            <button type="button" class="vk-key" data-key="a">A</button>
+            <button type="button" class="vk-key" data-key="s">S</button>
+            <button type="button" class="vk-key" data-key="d">D</button>
+            <button type="button" class="vk-key" data-key="f">F</button>
+            <button type="button" class="vk-key" data-key="g">G</button>
+            <button type="button" class="vk-key" data-key="h">H</button>
+            <button type="button" class="vk-key" data-key="j">J</button>
+            <button type="button" class="vk-key" data-key="k">K</button>
+            <button type="button" class="vk-key" data-key="l">L</button>
+          </div>
+          <div class="vk-row">
+            <button type="button" class="vk-key vk-action" data-key="space" style="flex: 1.5;">SPACE</button>
+            <button type="button" class="vk-key" data-key="z">Z</button>
+            <button type="button" class="vk-key" data-key="x">X</button>
+            <button type="button" class="vk-key" data-key="c">C</button>
+            <button type="button" class="vk-key" data-key="v">V</button>
+            <button type="button" class="vk-key" data-key="b">B</button>
+            <button type="button" class="vk-key" data-key="n">N</button>
+            <button type="button" class="vk-key" data-key="m">M</button>
+            <button type="button" class="vk-key vk-action vk-backspace" data-key="backspace" style="flex: 1.5;">⌫</button>
+          </div>
         </div>
 
         <!-- Game Over Overlay -->
