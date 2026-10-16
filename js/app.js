@@ -1,17 +1,19 @@
-import { db } from './db.js?v=3';
-import { profileManager } from './profile-manager.js?v=3';
-import { vocabManager } from './vocab-manager.js?v=3';
-import { statsManager } from './stats-manager.js?v=3';
-import { uiManager } from './ui-manager.js?v=3';
-import { GameEngine } from './game-engine.js?v=3';
-import { t, setLanguage } from './i18n.js?v=3';
-import { FileImporter } from './importer.js?v=3';
-import { DocExporter } from './doc-exporter.js?v=3';
-import { SpacedRepetition } from './spaced-repetition.js?v=3';
+import { db } from './db.js?v=5';
+import { profileManager } from './profile-manager.js?v=5';
+import { vocabManager } from './vocab-manager.js?v=5';
+import { statsManager } from './stats-manager.js?v=5';
+import { uiManager } from './ui-manager.js?v=5';
+import { GameEngine } from './game-engine.js?v=5';
+import { t, setLanguage } from './i18n.js?v=5';
+import { FileImporter } from './importer.js?v=5';
+import { DocExporter } from './doc-exporter.js?v=5';
+import { SpacedRepetition } from './spaced-repetition.js?v=5';
+import { getPracticeSentences } from './sentence-manager.js?v=5';
 
 class App {
   constructor() {
     this.game = null;
+    this.pendingGame = null;
   }
 
   async init() {
@@ -52,7 +54,16 @@ class App {
   setupNavigation() {
     // Menu buttons
     document.getElementById('btn-to-game')?.addEventListener('click', () => {
+      this.prepareGame();
+    });
+
+    document.getElementById('btn-begin-round')?.addEventListener('click', () => {
       this.startNewGame();
+    });
+
+    document.getElementById('btn-ready-back')?.addEventListener('click', () => {
+      this.pendingGame = null;
+      uiManager.showScreen('screen-main-menu');
     });
 
     document.getElementById('btn-to-vocab')?.addEventListener('click', () => {
@@ -100,10 +111,11 @@ class App {
     
     // Choose mode
     const modeSelect = document.getElementById('game-mode-select');
-    const selectedMode = modeSelect ? modeSelect.value : 'survival';
+    const pendingGame = this.pendingGame;
+    const selectedMode = pendingGame?.mode || (modeSelect ? modeSelect.value : 'survival');
     const allWords = vocabManager.getAll();
 
-    if (allWords.length === 0) {
+    if (selectedMode !== 'dictation' && allWords.length === 0) {
       uiManager.showToast('Chưa có từ vựng. Hãy thêm ít nhất một từ trước khi chơi.', 'error');
       uiManager.showScreen('screen-vocab');
       return;
@@ -184,20 +196,24 @@ class App {
     }, 150);
 
     // Get vocab words based on mode (Section 5)
-    let gameWords = [];
+    let gameWords = pendingGame?.words || [];
 
-    if (selectedMode === 'srs') {
+    if (gameWords.length === 0 && selectedMode === 'srs') {
       const dueWords = SpacedRepetition.getDueWords(allWords);
       gameWords = dueWords.length >= 5 ? dueWords : vocabManager.getGameWords(30);
-    } else if (selectedMode === 'favorites') {
+    } else if (gameWords.length === 0 && selectedMode === 'favorites') {
       const favs = allWords.filter(w => w.isFavorite);
       gameWords = favs.length > 0 ? favs : vocabManager.getGameWords(30);
-    } else if (selectedMode === 'missed') {
+    } else if (gameWords.length === 0 && selectedMode === 'missed') {
       const missed = allWords.filter(w => w.needsReview || (w.incorrectCount && w.incorrectCount > 0));
       gameWords = missed.length > 0 ? missed : vocabManager.getGameWords(30);
-    } else {
+    } else if (gameWords.length === 0 && selectedMode === 'dictation') {
+      gameWords = getPracticeSentences(10);
+    } else if (gameWords.length === 0 && selectedMode !== 'dictation') {
       gameWords = vocabManager.getGameWords(30);
     }
+
+    this.pendingGame = null;
 
     // Pass custom effects config to engine
     this.game.effectsConfig = {
@@ -210,9 +226,44 @@ class App {
     this.game.start(gameWords, selectedMode);
   }
 
+  prepareGame() {
+    const profile = profileManager.getCurrentProfile();
+    const modeSelect = document.getElementById('game-mode-select');
+    const mode = modeSelect ? modeSelect.value : 'survival';
+    const allWords = vocabManager.getAll();
+
+    if (mode !== 'dictation' && allWords.length === 0) {
+      uiManager.showToast('Chưa có từ vựng để tạo đề.', 'error');
+      uiManager.showScreen('screen-vocab');
+      return;
+    }
+
+    const dictation = mode === 'dictation';
+    const words = dictation ? getPracticeSentences(10) : vocabManager.getGameWords(30);
+    const item = words[0];
+    const direction = profile.settings?.wordDirection || 'en-vi';
+    const prompt = dictation
+      ? 'NGHE CÂU TIẾNG ANH RỒI GÕ LẠI'
+      : (direction === 'en-vi' ? item.vietnamese : item.english);
+    const answer = dictation ? item.english : (direction === 'en-vi' ? item.english : item.vietnamese);
+    const mask = dictation
+      ? '•'.repeat(Math.min(answer.length, 42))
+      : (answer.length > 1 ? `${answer[0]}${'.'.repeat(answer.length - 1)}` : answer);
+
+    this.pendingGame = { mode, words };
+    document.getElementById('ready-prompt').textContent = prompt;
+    document.getElementById('ready-mask').textContent = mask;
+    uiManager.showScreen('screen-ready');
+  }
+
   setupGameControls() {
     const input = document.getElementById('game-input');
     const fireBtn = document.getElementById('game-fire-btn');
+    const speakBtn = document.getElementById('game-speak-btn');
+
+    speakBtn?.addEventListener('click', () => {
+      this.game?.speakActiveTarget();
+    });
 
     // Realtime typing check (Parroto Chép Chính Tả Style)
     input?.addEventListener('input', () => {

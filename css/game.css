@@ -95,6 +95,7 @@
   display: flex;
   gap: 10px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .input-container {
@@ -119,6 +120,27 @@
 .game-input:focus {
   border-color: var(--color-neon-cyan);
   box-shadow: 0 0 12px rgba(77, 226, 208, 0.3);
+}
+
+.ready-card {
+  text-align: center;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+.ready-prompt {
+  color: var(--color-neon-yellow);
+  font-size: clamp(18px, 3vw, 28px);
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.ready-mask {
+  margin-top: 14px;
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  font-size: clamp(18px, 3vw, 26px);
+  letter-spacing: 3px;
+  overflow-wrap: anywhere;
 }
 
 /* Virtual Keyboard Styles */

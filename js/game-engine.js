@@ -1,7 +1,7 @@
-import { AnswerChecker } from './answer-checker.js?v=3';
-import { audioManager } from './audio-manager.js?v=3';
-import { SpacedRepetition } from './spaced-repetition.js?v=3';
-import { vocabManager } from './vocab-manager.js?v=3';
+import { AnswerChecker } from './answer-checker.js?v=5';
+import { audioManager } from './audio-manager.js?v=5';
+import { SpacedRepetition } from './spaced-repetition.js?v=5';
+import { vocabManager } from './vocab-manager.js?v=5';
 
 export class GameEngine {
   constructor(canvas, options = {}) {
@@ -89,7 +89,9 @@ export class GameEngine {
     clearInterval(this.gameTimer);
 
     // Spawn words interval
-    const spawnRate = this.options.speed === 'fast' ? 2000 : (this.options.speed === 'slow' ? 3500 : 2500);
+    const spawnRate = this.mode === 'dictation'
+      ? 6000
+      : (this.options.speed === 'fast' ? 2000 : (this.options.speed === 'slow' ? 3500 : 2500));
     this.spawnTimer = setInterval(() => {
       if (!this.isPaused && this.isRunning) {
         this.spawnWord();
@@ -114,7 +116,7 @@ export class GameEngine {
   }
 
   spawnWord() {
-    if (this.activeWords.length >= 6) return; // Cap maximum words on screen
+    if (this.activeWords.length >= (this.mode === 'dictation' ? 1 : 6)) return;
     if (!this.words || this.words.length === 0) return;
 
     // Pick random word
@@ -125,11 +127,16 @@ export class GameEngine {
     // Parroto Style:
     // If direction is en-vi: Prompt is Vietnamese meaning, Target is English word to type
     // If direction is vi-en: Prompt is English word, Target is Vietnamese meaning
-    const displayPrompt = isEnToVi ? item.vietnamese : item.english;
-    const targetWord = isEnToVi ? item.english : item.vietnamese;
+    const isDictation = this.mode === 'dictation';
+    const displayPrompt = isDictation
+      ? 'NGHE VÀ GÕ LẠI CÂU TIẾNG ANH'
+      : (isEnToVi ? item.vietnamese : item.english);
+    const targetWord = isDictation ? item.english : (isEnToVi ? item.english : item.vietnamese);
     const subHint = isEnToVi ? (item.ipa ? `${item.ipa}` : '') : '';
 
-    const approxWidth = Math.max(180, Math.max(displayPrompt.length, targetWord.length) * 13 + 40);
+    const approxWidth = isDictation
+      ? Math.min(this.canvas.width - 40, 420)
+      : Math.max(180, Math.max(displayPrompt.length, targetWord.length) * 13 + 40);
     const padding = 20;
     const maxX = Math.max(20, this.canvas.width - approxWidth - padding);
     const x = padding + Math.random() * maxX;
@@ -144,7 +151,7 @@ export class GameEngine {
       typedProgress: 0,         // Số ký tự đã gõ khớp
       rawItem: item,
       x: x,
-      y: 10,
+      y: 80,
       vy: speedBase * (0.8 + Math.random() * 0.3),
       width: approxWidth,
       height: 60,
@@ -228,6 +235,13 @@ export class GameEngine {
     }
   }
 
+  speakActiveTarget() {
+    const activeTarget = this.activeWords.find(w => w.typedProgress > 0) || this.activeWords[0];
+    if (activeTarget?.rawItem?.english) {
+      audioManager.speak(activeTarget.rawItem.english, 'en-US');
+    }
+  }
+
   triggerHit(hitIndex) {
     this.correctAttempts++;
     const hitWord = this.activeWords[hitIndex];
@@ -268,6 +282,12 @@ export class GameEngine {
 
     // Remove word
     this.activeWords.splice(hitIndex, 1);
+
+    if (this.mode === 'dictation' && this.isRunning) {
+      setTimeout(() => {
+        if (this.isRunning && this.activeWords.length === 0) this.spawnWord();
+      }, 250);
+    }
 
     this.onHudUpdate({
       score: this.score,
@@ -416,15 +436,16 @@ export class GameEngine {
       const typedLen = w.typedProgress || 0;
 
       this.ctx.font = 'bold 17px "Share Tech Mono", monospace';
-      const maskedStr = targetStr.length > 1
+      const showFirstCharacter = this.mode !== 'dictation';
+      const maskedStr = showFirstCharacter && targetStr.length > 1
         ? `${targetStr[0]}${'.'.repeat(targetStr.length - 1)}`
-        : targetStr;
+        : '.'.repeat(targetStr.length);
       const totalTextWidth = this.ctx.measureText(maskedStr).width;
       let startX = cx - totalTextWidth / 2;
 
       this.ctx.textAlign = 'left';
       for (let c = 0; c < targetStr.length; c++) {
-        const char = c === 0 ? targetStr[0] : '.';
+        const char = showFirstCharacter && c === 0 ? targetStr[0] : '.';
         const charWidth = this.ctx.measureText(char).width;
 
         if (c < typedLen) {
@@ -463,13 +484,13 @@ export class GameEngine {
     this.ctx.translate(cx, cy);
 
     // 1. Base Platform
-    this.ctx.fillStyle = '#0f142b';
-    this.ctx.strokeStyle = '#00ffff';
-    this.ctx.lineWidth = 3;
-    this.ctx.shadowColor = '#00ffff';
-    this.ctx.shadowBlur = 12;
+    this.ctx.fillStyle = '#101827';
+    this.ctx.strokeStyle = '#4DE2D0';
+    this.ctx.lineWidth = 4;
+    this.ctx.shadowColor = '#4DE2D0';
+    this.ctx.shadowBlur = 18;
     this.ctx.beginPath();
-    this.ctx.arc(0, 0, 32, Math.PI, 0, false);
+    this.ctx.arc(0, 0, 46, Math.PI, 0, false);
     this.ctx.fill();
     this.ctx.stroke();
 
@@ -477,20 +498,20 @@ export class GameEngine {
     this.ctx.rotate(angle + Math.PI / 2); // Rotate towards target
 
     // Dual Barrel Laser Cannons
-    this.ctx.fillStyle = '#ff007f';
-    this.ctx.shadowColor = '#ff007f';
-    this.ctx.shadowBlur = 10;
+    this.ctx.fillStyle = '#FF5C8A';
+    this.ctx.shadowColor = '#FF5C8A';
+    this.ctx.shadowBlur = 16;
     
     // Left barrel
-    this.ctx.fillRect(-10, -42, 6, 32);
+    this.ctx.fillRect(-14, -58, 9, 44);
     // Right barrel
-    this.ctx.fillRect(4, -42, 6, 32);
+    this.ctx.fillRect(5, -58, 9, 44);
 
     // Turret Core Body
-    this.ctx.fillStyle = '#00ffff';
-    this.ctx.shadowColor = '#00ffff';
+    this.ctx.fillStyle = '#4DE2D0';
+    this.ctx.shadowColor = '#4DE2D0';
     this.ctx.beginPath();
-    this.ctx.arc(0, -5, 16, 0, Math.PI * 2);
+    this.ctx.arc(0, -7, 22, 0, Math.PI * 2);
     this.ctx.fill();
 
     // Core Glowing Energy Light
@@ -498,9 +519,16 @@ export class GameEngine {
     this.ctx.shadowColor = '#ffffff';
     this.ctx.shadowBlur = 15;
     this.ctx.beginPath();
-    this.ctx.arc(0, -5, 6, 0, Math.PI * 2);
+    this.ctx.arc(0, -7, 8, 0, Math.PI * 2);
     this.ctx.fill();
 
+    this.ctx.restore();
+
+    this.ctx.save();
+    this.ctx.fillStyle = '#B0BDD0';
+    this.ctx.font = '600 11px Inter, sans-serif';
+    this.ctx.textAlign = 'center';
+    this.ctx.fillText('LASER', cx, this.canvas.height - 56);
     this.ctx.restore();
   }
 

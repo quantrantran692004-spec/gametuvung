@@ -1,4 +1,4 @@
-const CACHE_NAME = 'word-shooter-v3';
+const CACHE_NAME = 'word-shooter-v5';
 const ASSETS = [
   './',
   './index.html',
@@ -17,6 +17,7 @@ const ASSETS = [
   './js/importer.js',
   './js/doc-exporter.js',
   './js/spaced-repetition.js',
+  './js/sentence-manager.js',
   './js/i18n.js'
 ];
 

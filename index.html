@@ -62,13 +62,14 @@
           <option value="srs">7. Luyện từ lâu chưa nhớ (Spaced Repetition)</option>
           <option value="two_players">8. Đấu luân phiên 2 người (1 Thiết bị)</option>
           <option value="high_score">9. Thử thách điểm cao (Tốc độ tăng dần)</option>
+          <option value="dictation">10. Nghe câu tiếng Anh & chép chính tả</option>
         </select>
       </div>
 
       <!-- Action Buttons -->
       <div style="display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 320px;">
         <button id="btn-to-game" class="btn" style="padding: 16px; font-size: 16px;">
-          ▶ BẮT ĐẦU CHƠI
+          🧩 TẠO ĐỀ
         </button>
         <button id="btn-to-vocab" class="btn btn-pink">
           📚 KHO TỪ VỰNG
@@ -79,6 +80,21 @@
         <button id="btn-to-settings" class="btn" style="border-color: #8a99ad; color: #8a99ad;">
           ⚙ CÀI ĐẶT
         </button>
+      </div>
+    </main>
+
+    <!-- SCREEN: READY / GENERATED PROMPT -->
+    <main id="screen-ready" class="screen" style="justify-content: center; align-items: center; text-align: center;">
+      <div class="cyber-card ready-card" style="max-width: 520px; width: 100%;">
+        <div style="color: var(--color-text-subtle); font-size: 12px; letter-spacing: 1px;">ĐỀ ĐÃ TẠO</div>
+        <h2 class="neon-title" style="margin: 12px 0 22px;">SẴN SÀNG?</h2>
+        <div id="ready-prompt" class="ready-prompt">...</div>
+        <div id="ready-mask" class="ready-mask">a....</div>
+        <p style="color: var(--color-text-muted); margin: 16px 0 22px;">Nghe, đoán từ rồi nhấn BẮT ĐẦU để chữ bắt đầu rơi.</p>
+        <div style="display: flex; gap: 10px; justify-content: center;">
+          <button id="btn-begin-round" class="btn btn-green">▶ BẮT ĐẦU</button>
+          <button id="btn-ready-back" class="btn btn-pink">ĐỔI ĐỀ</button>
+        </div>
       </div>
     </main>
 
@@ -120,7 +136,8 @@
           <div class="input-container">
             <input type="text" id="game-input" class="game-input" placeholder="GÕ TRỰC TIẾP TRÊN BÀN PHÍM..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
           </div>
-          <button id="game-fire-btn" class="btn btn-pink" style="padding: 12px 20px;">BẮN</button>
+          <button id="game-speak-btn" class="btn btn-green" style="padding: 12px 14px;" title="Đọc lại từ đang rơi">🔊 ĐỌC</button>
+          <button id="game-fire-btn" class="btn btn-pink" style="padding: 12px 20px;">🎯 BẮN</button>
         </div>
 
         <!-- Virtual Keyboard (Hiển thị tự động trên Mobile/Tablet) -->
@@ -358,6 +375,6 @@
   </div>
 
   <!-- Entry Script with Cache Busting -->
-  <script type="module" src="./js/app.js?v=3"></script>
+  <script type="module" src="./js/app.js?v=5"></script>
 </body>
 </html>
