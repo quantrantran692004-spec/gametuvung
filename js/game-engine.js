@@ -41,12 +41,13 @@ export class GameEngine {
 
   resizeCanvas() {
     if (!this.canvas) return;
-    const rect = this.canvas.parentElement.getBoundingClientRect();
-    this.canvas.width = rect.width;
-    this.canvas.height = rect.height;
+    const rect = this.canvas.parentElement ? this.canvas.parentElement.getBoundingClientRect() : null;
+    this.canvas.width = (rect && rect.width > 50) ? rect.width : window.innerWidth;
+    this.canvas.height = (rect && rect.height > 50) ? rect.height : (window.innerHeight - 150);
   }
 
   start(vocabList, mode = 'survival') {
+    this.resizeCanvas();
     this.mode = mode;
     this.words = [...vocabList];
     this.activeWords = [];
