@@ -1,7 +1,7 @@
-import { AnswerChecker } from './answer-checker.js?v=9';
-import { audioManager } from './audio-manager.js?v=9';
-import { SpacedRepetition } from './spaced-repetition.js?v=9';
-import { vocabManager } from './vocab-manager.js?v=9';
+import { AnswerChecker } from './answer-checker.js?v=10';
+import { audioManager } from './audio-manager.js?v=10';
+import { SpacedRepetition } from './spaced-repetition.js?v=10';
+import { vocabManager } from './vocab-manager.js?v=10';
 
 export class GameEngine {
   constructor(canvas, options = {}) {
@@ -148,6 +148,7 @@ export class GameEngine {
       prompt: displayPrompt,     // Nghĩa tiếng Việt hiển thị to ở trên
       target: targetWord,       // Từ tiếng Anh cần gõ
       subHint: subHint,         // Phiên âm IPA
+      typedText: '',             // Các ký tự người chơi đã nhập, hiển thị trực tiếp
       typedProgress: 0,         // Số ký tự đã gõ khớp
       rawItem: item,
       x: x,
@@ -177,12 +178,14 @@ export class GameEngine {
       const promptClean = w.prompt.trim().toLowerCase();
 
       // Check prefix match to highlight letters
+      w.typedText = clean;
       if (clean && targetClean.startsWith(clean)) {
         w.typedProgress = clean.length;
-        w.glow = '#ffff00'; // Yellow glow while typing correctly
+        w.glow = '#67E8A5';
       } else {
         w.typedProgress = 0;
-        w.glow = '#4DE2D0';
+        w.glow = clean ? '#FF6B91' : '#49D7C5';
+        w.errorUntil = performance.now() + 450;
       }
 
       // Exact match reached -> AUTO SHOOT!
@@ -289,6 +292,7 @@ export class GameEngine {
       combo: this.combo,
       lives: this.lives
     });
+    this.onAnswerFeedback({ correct: true, score: this.score, combo: this.combo });
   }
 
   createExplosion(x, y) {
@@ -428,6 +432,7 @@ export class GameEngine {
 
       // 2. Chỉ hiển thị chữ đầu và dấu chấm, không làm lộ toàn bộ đáp án
       const targetStr = w.target;
+      const typedText = w.typedText || '';
       const typedLen = w.typedProgress || 0;
 
       this.ctx.font = 'bold 17px "Share Tech Mono", monospace';
@@ -440,17 +445,19 @@ export class GameEngine {
 
       this.ctx.textAlign = 'left';
       for (let c = 0; c < targetStr.length; c++) {
-        const char = showFirstCharacter && c === 0 ? targetStr[0] : '.';
+        const char = c < typedText.length
+          ? typedText[c]
+          : (showFirstCharacter && c === 0 ? targetStr[0] : '.');
         const charWidth = this.ctx.measureText(char).width;
 
         if (c < typedLen) {
           // Ký tự đã nhập đúng: xanh thành công
-          this.ctx.fillStyle = '#5EE6A8';
-          this.ctx.shadowColor = '#5EE6A8';
+          this.ctx.fillStyle = '#67E8A5';
+          this.ctx.shadowColor = '#67E8A5';
           this.ctx.shadowBlur = 8;
         } else {
           // Unmatched character: Soft Gray / Cyan
-          this.ctx.fillStyle = '#8a99ad';
+          this.ctx.fillStyle = w.errorUntil > performance.now() ? '#FF6B91' : '#AEBBD0';
           this.ctx.shadowBlur = 0;
         }
 

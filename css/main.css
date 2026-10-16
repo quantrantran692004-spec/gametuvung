@@ -529,3 +529,25 @@ h1, h2, h3, h4, .neon-title { font-family: inherit; letter-spacing: -.02em; text
   .top-nav { min-height: 52px; }
   .screen { padding: 10px; }
 }
+
+/* New product tone: navy / violet / coral */
+:root {
+  --ui-cyan: #8b9cff;
+  --ui-pink: #ff718b;
+  --ui-green: #7ee2b8;
+  --ui-yellow: #f7c873;
+  --color-neon-cyan: #8b9cff;
+  --color-neon-pink: #ff718b;
+  --color-neon-green: #7ee2b8;
+  --color-neon-yellow: #f7c873;
+  --color-border: #303c5d;
+}
+.game-container.feedback-correct { animation: answerCorrect .34s ease; }
+.game-container.feedback-wrong { animation: answerWrong .28s ease; }
+@keyframes answerCorrect {
+  50% { box-shadow: 0 0 0 3px rgba(126,226,184,.32); }
+}
+@keyframes answerWrong {
+  25% { transform: translateX(-4px); box-shadow: 0 0 0 3px rgba(255,113,139,.28); }
+  75% { transform: translateX(4px); }
+}

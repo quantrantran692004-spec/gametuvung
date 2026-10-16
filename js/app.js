@@ -1,15 +1,15 @@
-import { db } from './db.js?v=9';
-import { profileManager } from './profile-manager.js?v=9';
-import { vocabManager } from './vocab-manager.js?v=9';
-import { statsManager } from './stats-manager.js?v=9';
-import { uiManager } from './ui-manager.js?v=9';
-import { GameEngine } from './game-engine.js?v=9';
-import { t, setLanguage } from './i18n.js?v=9';
-import { FileImporter } from './importer.js?v=9';
-import { DocExporter } from './doc-exporter.js?v=9';
-import { SpacedRepetition } from './spaced-repetition.js?v=9';
-import { getPracticeSentences } from './sentence-manager.js?v=9';
-import { audioManager } from './audio-manager.js?v=9';
+import { db } from './db.js?v=10';
+import { profileManager } from './profile-manager.js?v=10';
+import { vocabManager } from './vocab-manager.js?v=10';
+import { statsManager } from './stats-manager.js?v=10';
+import { uiManager } from './ui-manager.js?v=10';
+import { GameEngine } from './game-engine.js?v=10';
+import { t, setLanguage } from './i18n.js?v=10';
+import { FileImporter } from './importer.js?v=10';
+import { DocExporter } from './doc-exporter.js?v=10';
+import { SpacedRepetition } from './spaced-repetition.js?v=10';
+import { getPracticeSentences } from './sentence-manager.js?v=10';
+import { audioManager } from './audio-manager.js?v=10';
 
 class App {
   constructor() {
@@ -159,7 +159,13 @@ class App {
         }
       },
       onAnswerFeedback: ({ correct, penalty }) => {
-        if (!correct) {
+        const arena = document.querySelector('.game-container');
+        arena?.classList.remove('feedback-correct', 'feedback-wrong');
+        void arena?.offsetWidth;
+        arena?.classList.add(correct ? 'feedback-correct' : 'feedback-wrong');
+        if (correct) {
+          uiManager.showToast('ĐÚNG! Mục tiêu đã bị bắn.', 'success');
+        } else {
           uiManager.showToast(`Sai đáp án: -${penalty} điểm, combo đã reset.`, 'error');
         }
       },
