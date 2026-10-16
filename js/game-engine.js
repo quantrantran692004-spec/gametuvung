@@ -1,7 +1,7 @@
-import { AnswerChecker } from './answer-checker.js?v=5';
-import { audioManager } from './audio-manager.js?v=5';
-import { SpacedRepetition } from './spaced-repetition.js?v=5';
-import { vocabManager } from './vocab-manager.js?v=5';
+import { AnswerChecker } from './answer-checker.js?v=7';
+import { audioManager } from './audio-manager.js?v=7';
+import { SpacedRepetition } from './spaced-repetition.js?v=7';
+import { vocabManager } from './vocab-manager.js?v=7';
 
 export class GameEngine {
   constructor(canvas, options = {}) {
@@ -90,8 +90,8 @@ export class GameEngine {
 
     // Spawn words interval
     const spawnRate = this.mode === 'dictation'
-      ? 6000
-      : (this.options.speed === 'fast' ? 2000 : (this.options.speed === 'slow' ? 3500 : 2500));
+      ? 9000
+      : (this.options.speed === 'fast' ? 3500 : (this.options.speed === 'slow' ? 6000 : 4500));
     this.spawnTimer = setInterval(() => {
       if (!this.isPaused && this.isRunning) {
         this.spawnWord();
@@ -141,7 +141,7 @@ export class GameEngine {
     const maxX = Math.max(20, this.canvas.width - approxWidth - padding);
     const x = padding + Math.random() * maxX;
     
-    const speedBase = this.options.speed === 'fast' ? 1.2 : (this.options.speed === 'slow' ? 0.5 : 0.75);
+    const speedBase = this.options.speed === 'fast' ? 0.7 : (this.options.speed === 'slow' ? 0.25 : 0.4);
 
     const wordEntity = {
       id: Math.random().toString(36).substring(2, 8),
@@ -160,7 +160,7 @@ export class GameEngine {
 
     this.activeWords.push(wordEntity);
 
-    if (this.options.voiceEnabled) {
+    if (this.options.autoSpeak) {
       audioManager.speak(item.english, 'en-US');
     }
   }
@@ -268,11 +268,6 @@ export class GameEngine {
 
     audioManager.playLaser();
     setTimeout(() => audioManager.playExplosion(), 50);
-
-    // Voice Pronounce target or english word
-    if (this.options.voiceEnabled) {
-      audioManager.speak(hitWord.rawItem.english);
-    }
 
     // Update Spaced Repetition mastery
     if (hitWord.rawItem && hitWord.rawItem.id) {

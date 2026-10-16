@@ -1,4 +1,4 @@
-import { db } from './db.js?v=5';
+import { db } from './db.js?v=7';
 
 export class ProfileManager {
   constructor() {
@@ -20,7 +20,7 @@ export class ProfileManager {
           language: 'vi',
           perfProfile: 'balanced',
           soundEnabled: true,
-          voiceEnabled: true,
+          voiceEnabled: false,
           wordDirection: 'en-vi',
           speed: 'normal',
           lives: 5,

@@ -1,14 +1,15 @@
-import { db } from './db.js?v=5';
-import { profileManager } from './profile-manager.js?v=5';
-import { vocabManager } from './vocab-manager.js?v=5';
-import { statsManager } from './stats-manager.js?v=5';
-import { uiManager } from './ui-manager.js?v=5';
-import { GameEngine } from './game-engine.js?v=5';
-import { t, setLanguage } from './i18n.js?v=5';
-import { FileImporter } from './importer.js?v=5';
-import { DocExporter } from './doc-exporter.js?v=5';
-import { SpacedRepetition } from './spaced-repetition.js?v=5';
-import { getPracticeSentences } from './sentence-manager.js?v=5';
+import { db } from './db.js?v=7';
+import { profileManager } from './profile-manager.js?v=7';
+import { vocabManager } from './vocab-manager.js?v=7';
+import { statsManager } from './stats-manager.js?v=7';
+import { uiManager } from './ui-manager.js?v=7';
+import { GameEngine } from './game-engine.js?v=7';
+import { t, setLanguage } from './i18n.js?v=7';
+import { FileImporter } from './importer.js?v=7';
+import { DocExporter } from './doc-exporter.js?v=7';
+import { SpacedRepetition } from './spaced-repetition.js?v=7';
+import { getPracticeSentences } from './sentence-manager.js?v=7';
+import { audioManager } from './audio-manager.js?v=7';
 
 class App {
   constructor() {
@@ -23,6 +24,8 @@ class App {
 
       // 2. Initialize Profiles
       const currentProfile = await profileManager.init();
+      audioManager.soundEnabled = currentProfile.settings?.soundEnabled === true;
+      audioManager.voiceEnabled = currentProfile.settings?.voiceEnabled === true;
 
       // 3. Initialize Vocabulary
       await vocabManager.init();
@@ -44,6 +47,9 @@ class App {
       // 6. Init UI
       uiManager.updateProfileBadge();
       uiManager.showScreen('screen-main-menu');
+      if (db.usingFallback) {
+        uiManager.showToast('Thiết bị đang chặn IndexedDB; game vẫn chơi được nhưng dữ liệu chỉ giữ trong phiên này.', 'info');
+      }
 
     } catch (err) {
       console.error('Fatal initialization error:', err);
@@ -127,7 +133,8 @@ class App {
       speed: settings.speed || 'normal',
       duration: settings.timerDuration || 60,
       wordDirection: settings.wordDirection || 'en-vi',
-      voiceEnabled: settings.voiceEnabled !== false,
+      voiceEnabled: settings.voiceEnabled === true,
+      autoSpeak: settings.voiceEnabled === true,
       missPenalty: 25,
       caseSensitive: settings.caseSensitive || false,
       acceptTypos: settings.acceptTypos !== false,
@@ -508,6 +515,8 @@ class App {
       };
 
       await profileManager.updateSettings(newSettings);
+      audioManager.soundEnabled = newSettings.soundEnabled;
+      audioManager.voiceEnabled = newSettings.voiceEnabled;
       setLanguage(newSettings.language);
 
       // Apply performance class to body

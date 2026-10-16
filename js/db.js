@@ -5,9 +5,16 @@ const DB_VERSION = 1;
 class DB {
   constructor() {
     this.db = null;
+    this.memory = new Map();
+    this.usingFallback = false;
   }
 
   async init() {
+    if (!('indexedDB' in window)) {
+      this.usingFallback = true;
+      return null;
+    }
+
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(DB_NAME, DB_VERSION);
 
@@ -50,12 +57,19 @@ class DB {
 
       request.onerror = (event) => {
         console.error('IndexedDB error:', event.target.error);
-        reject(event.target.error);
+        this.usingFallback = true;
+        resolve(null);
+      };
+
+      request.onblocked = () => {
+        this.usingFallback = true;
+        resolve(null);
       };
     });
   }
 
   async getAll(storeName) {
+    if (this.usingFallback) return [...(this.memory.get(storeName)?.values() || [])];
     return new Promise((resolve, reject) => {
       const tx = this.db.transaction(storeName, 'readonly');
       const store = tx.objectStore(storeName);
@@ -66,6 +80,7 @@ class DB {
   }
 
   async get(storeName, key) {
+    if (this.usingFallback) return this.memory.get(storeName)?.get(key);
     return new Promise((resolve, reject) => {
       const tx = this.db.transaction(storeName, 'readonly');
       const store = tx.objectStore(storeName);
@@ -76,6 +91,11 @@ class DB {
   }
 
   async put(storeName, item) {
+    if (this.usingFallback) {
+      if (!this.memory.has(storeName)) this.memory.set(storeName, new Map());
+      this.memory.get(storeName).set(item.id, item);
+      return item.id;
+    }
     return new Promise((resolve, reject) => {
       const tx = this.db.transaction(storeName, 'readwrite');
       const store = tx.objectStore(storeName);
@@ -86,6 +106,10 @@ class DB {
   }
 
   async delete(storeName, key) {
+    if (this.usingFallback) {
+      this.memory.get(storeName)?.delete(key);
+      return undefined;
+    }
     return new Promise((resolve, reject) => {
       const tx = this.db.transaction(storeName, 'readwrite');
       const store = tx.objectStore(storeName);
@@ -96,6 +120,7 @@ class DB {
   }
 
   async count(storeName) {
+    if (this.usingFallback) return this.memory.get(storeName)?.size || 0;
     return new Promise((resolve, reject) => {
       const tx = this.db.transaction(storeName, 'readonly');
       const store = tx.objectStore(storeName);
