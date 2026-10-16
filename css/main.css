@@ -813,6 +813,7 @@ body.game-active {
 body.game-active .top-nav,
 body.game-active .cyber-grid,
 body.game-active #toast-container { display: none !important; }
+body.game-active #screen-game .game-hud { display: none !important; }
 body.game-active #app { height: 100dvh; min-height: 100dvh; }
 body.game-active #screen-game.active {
   height: 100dvh !important;
