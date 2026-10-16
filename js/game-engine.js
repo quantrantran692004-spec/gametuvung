@@ -112,39 +112,67 @@ export class GameEngine {
     if (this.words.length === 0) return;
 
     // Pick random word
-    const item = this.words[Math.floor(Math.random() * this.words.length)];
-    
-    const direction = this.options.wordDirection || 'en-vi';
     const isEnToVi = direction === 'en-vi';
 
-    // Measure text width approx
-    const displayPrompt = isEnToVi ? item.english : item.vietnamese;
-    const targetAnswer = isEnToVi ? item.vietnamese : item.english;
-    const subPrompt = isEnToVi ? (item.ipa || '') : '';
+    // Parroto Style:
+    // If direction is en-vi: Prompt is Vietnamese meaning, Target is English word to type
+    // If direction is vi-en: Prompt is English word, Target is Vietnamese meaning
+    const displayPrompt = isEnToVi ? item.vietnamese : item.english;
+    const targetWord = isEnToVi ? item.english : item.vietnamese;
+    const subHint = isEnToVi ? (item.ipa ? `${item.ipa}` : '') : '';
 
+    const approxWidth = Math.max(180, Math.max(displayPrompt.length, targetWord.length) * 13 + 40);
     const padding = 20;
-    // Dynamic width based on text length
-    const approxWidth = Math.max(160, Math.max(displayPrompt.length, targetAnswer.length) * 11 + 30);
     const maxX = Math.max(20, this.canvas.width - approxWidth - padding);
     const x = padding + Math.random() * maxX;
     
-    const speedBase = this.options.speed === 'fast' ? 1.4 : (this.options.speed === 'slow' ? 0.6 : 0.9);
+    const speedBase = this.options.speed === 'fast' ? 1.2 : (this.options.speed === 'slow' ? 0.5 : 0.75);
 
     const wordEntity = {
       id: Math.random().toString(36).substring(2, 8),
-      prompt: displayPrompt,
-      subPrompt: isEnToVi ? `[Nhập nghĩa: ${targetAnswer}]` : `[Gõ từ: ${targetAnswer}]`,
-      target: targetAnswer,
+      prompt: displayPrompt,     // Nghĩa tiếng Việt hiển thị to ở trên
+      target: targetWord,       // Từ tiếng Anh cần gõ
+      subHint: subHint,         // Phiên âm IPA
+      typedProgress: 0,         // Số ký tự đã gõ khớp
       rawItem: item,
       x: x,
-      y: -50, // Start slightly above screen and fall down smoothly
-      vy: speedBase * (0.8 + Math.random() * 0.4),
+      y: -60,
+      vy: speedBase * (0.8 + Math.random() * 0.3),
       width: approxWidth,
-      height: 52,
+      height: 60,
       glow: '#00ffff'
     };
 
     this.activeWords.push(wordEntity);
+  }
+
+  // Realtime update while user is typing in the box
+  updateTypingProgress(input) {
+    if (!this.isRunning || this.isPaused) return false;
+    const clean = input.trim().toLowerCase();
+
+    // Check if any word completely matches -> auto shoot!
+    for (let i = 0; i < this.activeWords.length; i++) {
+      const w = this.activeWords[i];
+      const targetClean = w.target.trim().toLowerCase();
+      const promptClean = w.prompt.trim().toLowerCase();
+
+      // Check prefix match to highlight letters
+      if (clean && targetClean.startsWith(clean)) {
+        w.typedProgress = clean.length;
+        w.glow = '#ffff00'; // Yellow glow while typing correctly
+      } else {
+        w.typedProgress = 0;
+        w.glow = '#00ffff';
+      }
+
+      // Exact match reached -> AUTO SHOOT!
+      if (clean && (targetClean === clean || promptClean === clean)) {
+        this.triggerHit(i);
+        return true;
+      }
+    }
+    return false;
   }
 
   submitAnswer(input) {
@@ -155,21 +183,13 @@ export class GameEngine {
 
     for (let i = 0; i < this.activeWords.length; i++) {
       const w = this.activeWords[i];
-      // Check target answer first
       let checkRes = AnswerChecker.check(input, w.target, {
         caseSensitive: this.options.caseSensitive,
         acceptTypos: this.options.acceptTypos
       });
 
-      // Also allow typing the english word directly or vietnamese meaning
-      if (!checkRes.correct && w.rawItem) {
-        checkRes = AnswerChecker.check(input, w.rawItem.english, {
-          caseSensitive: this.options.caseSensitive,
-          acceptTypos: this.options.acceptTypos
-        });
-      }
-      if (!checkRes.correct && w.rawItem) {
-        checkRes = AnswerChecker.check(input, w.rawItem.vietnamese, {
+      if (!checkRes.correct) {
+        checkRes = AnswerChecker.check(input, w.prompt, {
           caseSensitive: this.options.caseSensitive,
           acceptTypos: this.options.acceptTypos
         });
@@ -182,52 +202,7 @@ export class GameEngine {
     }
 
     if (hitIndex !== -1) {
-      // HIT!
-      this.correctAttempts++;
-      const hitWord = this.activeWords[hitIndex];
-      
-      this.combo++;
-      if (this.combo > this.highestCombo) this.highestCombo = this.combo;
-
-      const comboBonus = Math.min(this.combo * 10, 100);
-      this.score += (100 + comboBonus);
-      this.wordsShot++;
-
-      // Laser Beam from bottom center to word
-      this.lasers.push({
-        x1: this.canvas.width / 2,
-        y1: this.canvas.height - 20,
-        x2: hitWord.x + hitWord.width / 2,
-        y2: hitWord.y + hitWord.height / 2,
-        alpha: 1.0,
-        color: '#ff007f'
-      });
-
-      // Explosion Particles
-      this.createExplosion(hitWord.x + hitWord.width / 2, hitWord.y + hitWord.height / 2);
-
-      audioManager.playLaser();
-      setTimeout(() => audioManager.playExplosion(), 50);
-
-      // Voice Pronounce target or english word
-      if (this.options.voiceEnabled) {
-        audioManager.speak(hitWord.rawItem.english);
-      }
-
-      // Update Spaced Repetition mastery
-      if (hitWord.rawItem && hitWord.rawItem.id) {
-        const updatedWord = SpacedRepetition.reviewWord(hitWord.rawItem, true, 1.5);
-        vocabManager.updateWord(hitWord.rawItem.id, updatedWord);
-      }
-
-      // Remove word
-      this.activeWords.splice(hitIndex, 1);
-
-      this.onHudUpdate({
-        score: this.score,
-        combo: this.combo,
-        lives: this.lives
-      });
+      this.triggerHit(hitIndex);
       return true;
     } else {
       // MISS!
@@ -236,6 +211,54 @@ export class GameEngine {
       this.onHudUpdate({ combo: 0 });
       return false;
     }
+  }
+
+  triggerHit(hitIndex) {
+    this.correctAttempts++;
+    const hitWord = this.activeWords[hitIndex];
+    
+    this.combo++;
+    if (this.combo > this.highestCombo) this.highestCombo = this.combo;
+
+    const comboBonus = Math.min(this.combo * 10, 100);
+    this.score += (100 + comboBonus);
+    this.wordsShot++;
+
+    // Laser Beam from bottom center to word
+    this.lasers.push({
+      x1: this.canvas.width / 2,
+      y1: this.canvas.height - 20,
+      x2: hitWord.x + hitWord.width / 2,
+      y2: hitWord.y + hitWord.height / 2,
+      alpha: 1.0,
+      color: '#ff007f'
+    });
+
+    // Explosion Particles
+    this.createExplosion(hitWord.x + hitWord.width / 2, hitWord.y + hitWord.height / 2);
+
+    audioManager.playLaser();
+    setTimeout(() => audioManager.playExplosion(), 50);
+
+    // Voice Pronounce target or english word
+    if (this.options.voiceEnabled) {
+      audioManager.speak(hitWord.rawItem.english);
+    }
+
+    // Update Spaced Repetition mastery
+    if (hitWord.rawItem && hitWord.rawItem.id) {
+      const updatedWord = SpacedRepetition.reviewWord(hitWord.rawItem, true, 1.5);
+      vocabManager.updateWord(hitWord.rawItem.id, updatedWord);
+    }
+
+    // Remove word
+    this.activeWords.splice(hitIndex, 1);
+
+    this.onHudUpdate({
+      score: this.score,
+      combo: this.combo,
+      lives: this.lives
+    });
   }
 
   createExplosion(x, y) {
@@ -342,36 +365,58 @@ export class GameEngine {
       this.ctx.restore();
     }
 
-    // Draw Words as Cyberpunk Target Cards
+    // Draw Words as Target Cards (Parroto Style)
     for (const w of this.activeWords) {
       this.ctx.save();
       
-      // Card Box
-      this.ctx.fillStyle = 'rgba(13, 17, 35, 0.85)';
+      // Card Box with Neon Border
+      this.ctx.fillStyle = 'rgba(10, 14, 30, 0.9)';
       this.ctx.strokeStyle = w.glow;
-      this.ctx.lineWidth = 2;
+      this.ctx.lineWidth = w.typedProgress > 0 ? 3 : 2;
       this.ctx.shadowColor = w.glow;
-      this.ctx.shadowBlur = 10;
+      this.ctx.shadowBlur = w.typedProgress > 0 ? 15 : 8;
 
-      // Rounded Rect
-      const r = 6;
+      const r = 8;
       this.ctx.beginPath();
       this.ctx.roundRect(w.x, w.y, w.width, w.height, r);
       this.ctx.fill();
       this.ctx.stroke();
 
-      // Text Prompt
-      this.ctx.fillStyle = '#ffffff';
-      this.ctx.font = 'bold 16px "Orbitron", sans-serif';
+      const cx = w.x + w.width / 2;
+
+      // 1. Vietnamese Meaning / Prompt (Top, bright yellow or white)
+      this.ctx.fillStyle = '#ffea00';
+      this.ctx.font = 'bold 15px "Orbitron", sans-serif';
       this.ctx.textAlign = 'center';
       this.ctx.shadowBlur = 0;
-      this.ctx.fillText(w.prompt, w.x + w.width / 2, w.y + 24);
+      this.ctx.fillText(w.prompt, cx, w.y + 24);
 
-      // SubPrompt (Hint / Translation)
-      if (w.subPrompt) {
-        this.ctx.fillStyle = '#00ffff';
-        this.ctx.font = '12px "Share Tech Mono", monospace';
-        this.ctx.fillText(w.subPrompt, w.x + w.width / 2, w.y + 42);
+      // 2. English Target with Typed Character Highlight (Bottom)
+      const targetStr = w.target;
+      const typedLen = w.typedProgress || 0;
+
+      this.ctx.font = 'bold 17px "Share Tech Mono", monospace';
+      const totalTextWidth = this.ctx.measureText(targetStr).width;
+      let startX = cx - totalTextWidth / 2;
+
+      this.ctx.textAlign = 'left';
+      for (let c = 0; c < targetStr.length; c++) {
+        const char = targetStr[c];
+        const charWidth = this.ctx.measureText(char).width;
+
+        if (c < typedLen) {
+          // Matched character: Glowing Green / Cyan
+          this.ctx.fillStyle = '#00ff66';
+          this.ctx.shadowColor = '#00ff66';
+          this.ctx.shadowBlur = 8;
+        } else {
+          // Unmatched character: Soft Gray / Cyan
+          this.ctx.fillStyle = '#8a99ad';
+          this.ctx.shadowBlur = 0;
+        }
+
+        this.ctx.fillText(char, startX, w.y + 48);
+        startX += charWidth;
       }
 
       this.ctx.restore();
