@@ -109,9 +109,11 @@ export class GameEngine {
 
   spawnWord() {
     if (this.activeWords.length >= 6) return; // Cap maximum words on screen
-    if (this.words.length === 0) return;
+    if (!this.words || this.words.length === 0) return;
 
     // Pick random word
+    const item = this.words[Math.floor(Math.random() * this.words.length)];
+    const direction = this.options.wordDirection || 'en-vi';
     const isEnToVi = direction === 'en-vi';
 
     // Parroto Style:
