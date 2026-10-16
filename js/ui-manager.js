@@ -42,11 +42,11 @@ export class UIManager {
     }, 2800);
   }
 
-  renderVocabList() {
+  renderVocabList(query = '') {
     const listEl = document.getElementById('vocab-list');
     if (!listEl) return;
 
-    const words = vocabManager.getAll();
+    const words = query ? vocabManager.search(query) : vocabManager.getAll();
     if (words.length === 0) {
       listEl.innerHTML = `<div style="text-align: center; color: var(--color-text-muted); padding: 40px;">${t('vocab_empty')}</div>`;
       return;
