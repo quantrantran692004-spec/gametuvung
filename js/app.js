@@ -221,14 +221,44 @@ class App {
       }
     };
 
-    input?.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        handleFire();
+    // Global keyboard listener for PC (gõ trực tiếp bất cứ lúc nào trên máy tính)
+    window.addEventListener('keydown', (e) => {
+      // Chỉ kích hoạt khi đang ở màn hình game và không mở modal
+      if (uiManager.currentScreen !== 'screen-game' || !this.game || !this.game.isRunning) return;
+      if (e.target && e.target.tagName === 'INPUT') return; // Đã có input listener xử lý
+
+      // Bắt phím chữ cái a-z, space, backspace
+      if (/^[a-zA-Z0-9]$/.test(e.key) || e.key === ' ' || e.key === 'Backspace') {
+        if (!input) return;
+        if (e.key === 'Backspace') {
+          input.value = input.value.slice(0, -1);
+        } else {
+          input.value += e.key;
+        }
+        const hit = this.game.updateTypingProgress(input.value);
+        if (hit) input.value = '';
       }
     });
 
-    fireBtn?.addEventListener('click', handleFire);
+    // Virtual Keyboard buttons (Dành cho điện thoại / máy tính bảng cảm ứng)
+    document.querySelectorAll('.vk-key').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (!this.game || !this.game.isRunning || !input) return;
+
+        const key = btn.getAttribute('data-key');
+        if (key === 'backspace') {
+          input.value = input.value.slice(0, -1);
+        } else if (key === 'space') {
+          input.value += ' ';
+        } else if (key) {
+          input.value += key;
+        }
+
+        const hit = this.game.updateTypingProgress(input.value);
+        if (hit) input.value = '';
+      });
+    });
 
     // Result buttons
     document.getElementById('btn-play-again')?.addEventListener('click', () => {
