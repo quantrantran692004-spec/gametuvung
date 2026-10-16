@@ -1,4 +1,4 @@
-import { db } from './db.js';
+import { db } from './db.js?v=3';
 
 export class StatsManager {
   async saveSession(sessionData) {
@@ -8,6 +8,7 @@ export class StatsManager {
       mode: sessionData.mode,
       score: sessionData.score,
       wordsShot: sessionData.wordsShot,
+      missedWords: sessionData.missedWords || 0,
       accuracy: sessionData.accuracy,
       highestCombo: sessionData.highestCombo,
       duration: sessionData.duration,

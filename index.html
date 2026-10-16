@@ -14,7 +14,7 @@
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
   <!-- Stylesheets -->
   <link rel="stylesheet" href="./css/main.css">
@@ -357,21 +357,7 @@
     </div>
   </div>
 
-  <!-- Unregister old stale service workers to ensure fresh code -->
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(registrations => {
-        for (const registration of registrations) {
-          registration.unregister();
-        }
-      });
-      caches.keys().then(keys => {
-        keys.forEach(k => caches.delete(k));
-      });
-    }
-  </script>
-
   <!-- Entry Script with Cache Busting -->
-  <script type="module" src="./js/app.js?v=2.2"></script>
+  <script type="module" src="./js/app.js?v=3"></script>
 </body>
 </html>

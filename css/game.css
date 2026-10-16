@@ -14,12 +14,13 @@
   justify-content: space-between;
   align-items: center;
   padding: 10px 16px;
-  background: rgba(13, 17, 35, 0.85);
+  background: rgba(16, 24, 39, 0.94);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   margin-bottom: 8px;
   font-family: var(--font-title);
   font-size: 14px;
+  color: var(--color-text-muted);
 }
 
 .hud-item {
@@ -59,7 +60,7 @@
 .combo-bar-bg {
   width: 100%;
   height: 6px;
-  background: #181d3b;
+  background: #172235;
   border-radius: 3px;
   overflow: hidden;
 }
@@ -75,7 +76,7 @@
 .canvas-wrapper {
   flex: 1;
   position: relative;
-  background: #060712;
+  background: #080c16;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   overflow: hidden;
@@ -103,22 +104,21 @@
 
 .game-input {
   width: 100%;
-  background: #090c1f;
+  background: #0b1220;
   border: 2px solid var(--color-neon-cyan);
-  color: var(--color-neon-cyan);
-  font-family: var(--font-title);
+  color: var(--color-text);
+  font-family: var(--font-mono);
   font-size: 20px;
   padding: 12px 18px;
   border-radius: var(--radius-sm);
   outline: none;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+  letter-spacing: 0.5px;
+  box-shadow: 0 0 8px rgba(77, 226, 208, 0.16);
 }
 
 .game-input:focus {
-  border-color: var(--color-neon-pink);
-  box-shadow: 0 0 15px rgba(255, 0, 127, 0.4);
+  border-color: var(--color-neon-cyan);
+  box-shadow: 0 0 12px rgba(77, 226, 208, 0.3);
 }
 
 /* Virtual Keyboard Styles */
@@ -227,7 +227,7 @@
 }
 
 .stat-box {
-  background: #080a18;
+  background: #0b1220;
   padding: 12px;
   border-radius: var(--radius-sm);
   border-left: 3px solid var(--color-neon-cyan);
@@ -242,7 +242,7 @@
 .stat-value {
   font-size: 22px;
   font-family: var(--font-title);
-  color: #fff;
+  color: var(--color-text);
   margin-top: 4px;
 }
 

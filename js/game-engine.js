@@ -1,7 +1,7 @@
-import { AnswerChecker } from './answer-checker.js';
-import { audioManager } from './audio-manager.js';
-import { SpacedRepetition } from './spaced-repetition.js';
-import { vocabManager } from './vocab-manager.js';
+import { AnswerChecker } from './answer-checker.js?v=3';
+import { audioManager } from './audio-manager.js?v=3';
+import { SpacedRepetition } from './spaced-repetition.js?v=3';
+import { vocabManager } from './vocab-manager.js?v=3';
 
 export class GameEngine {
   constructor(canvas, options = {}) {
@@ -22,6 +22,7 @@ export class GameEngine {
     this.combo = 0;
     this.highestCombo = 0;
     this.wordsShot = 0;
+    this.missedWords = 0;
     this.totalAttempts = 0;
     this.correctAttempts = 0;
     this.timeRemaining = options.duration || 60;
@@ -34,9 +35,12 @@ export class GameEngine {
     // Callbacks
     this.onHudUpdate = options.onHudUpdate || (() => {});
     this.onGameOver = options.onGameOver || (() => {});
+    this.onAnswerFeedback = options.onAnswerFeedback || (() => {});
+    this.missPenalty = Number.isFinite(options.missPenalty) ? options.missPenalty : 25;
     
+    this.handleResize = () => this.resizeCanvas();
     this.resizeCanvas();
-    window.addEventListener('resize', () => this.resizeCanvas());
+    window.addEventListener('resize', this.handleResize);
   }
 
   resizeCanvas() {
@@ -58,6 +62,7 @@ export class GameEngine {
     this.combo = 0;
     this.highestCombo = 0;
     this.wordsShot = 0;
+    this.missedWords = 0;
     this.totalAttempts = 0;
     this.correctAttempts = 0;
     this.lives = this.options.lives || 5;
@@ -139,14 +144,18 @@ export class GameEngine {
       typedProgress: 0,         // Số ký tự đã gõ khớp
       rawItem: item,
       x: x,
-      y: -60,
+      y: 10,
       vy: speedBase * (0.8 + Math.random() * 0.3),
       width: approxWidth,
       height: 60,
-      glow: '#00ffff'
+      glow: '#4DE2D0'
     };
 
     this.activeWords.push(wordEntity);
+
+    if (this.options.voiceEnabled) {
+      audioManager.speak(item.english, 'en-US');
+    }
   }
 
   // Realtime update while user is typing in the box
@@ -166,7 +175,7 @@ export class GameEngine {
         w.glow = '#ffff00'; // Yellow glow while typing correctly
       } else {
         w.typedProgress = 0;
-        w.glow = '#00ffff';
+        w.glow = '#4DE2D0';
       }
 
       // Exact match reached -> AUTO SHOOT!
@@ -209,9 +218,12 @@ export class GameEngine {
       return true;
     } else {
       // MISS!
+      this.missedWords++;
       this.combo = 0;
+      this.score = Math.max(0, this.score - this.missPenalty);
       audioManager.playMiss();
-      this.onHudUpdate({ combo: 0 });
+      this.onHudUpdate({ score: this.score, combo: 0 });
+      this.onAnswerFeedback({ correct: false, penalty: this.missPenalty });
       return false;
     }
   }
@@ -234,7 +246,7 @@ export class GameEngine {
       x2: hitWord.x + hitWord.width / 2,
       y2: hitWord.y + hitWord.height / 2,
       alpha: 1.0,
-      color: '#ff007f'
+      color: '#FF5C8A'
     });
 
     // Explosion Particles
@@ -276,7 +288,7 @@ export class GameEngine {
         vy: Math.sin(angle) * speed,
         life: 1.0,
         decay: 0.03 + Math.random() * 0.02,
-        color: Math.random() > 0.5 ? '#00ffff' : '#ff007f'
+        color: Math.random() > 0.5 ? '#4DE2D0' : '#FF5C8A'
       });
     }
   }
@@ -303,6 +315,11 @@ export class GameEngine {
         this.activeWords.splice(i, 1);
         this.combo = 0;
         audioManager.playMiss();
+
+        if (w.rawItem?.id) {
+          const updatedWord = SpacedRepetition.reviewWord(w.rawItem, false);
+          vocabManager.updateWord(w.rawItem.id, updatedWord);
+        }
 
         if (this.mode === 'survival') {
           this.lives--;
@@ -394,23 +411,26 @@ export class GameEngine {
       this.ctx.shadowBlur = 0;
       this.ctx.fillText(w.prompt, cx, w.y + 24);
 
-      // 2. English Target with Typed Character Highlight (Bottom)
+      // 2. Chỉ hiển thị chữ đầu và dấu chấm, không làm lộ toàn bộ đáp án
       const targetStr = w.target;
       const typedLen = w.typedProgress || 0;
 
       this.ctx.font = 'bold 17px "Share Tech Mono", monospace';
-      const totalTextWidth = this.ctx.measureText(targetStr).width;
+      const maskedStr = targetStr.length > 1
+        ? `${targetStr[0]}${'.'.repeat(targetStr.length - 1)}`
+        : targetStr;
+      const totalTextWidth = this.ctx.measureText(maskedStr).width;
       let startX = cx - totalTextWidth / 2;
 
       this.ctx.textAlign = 'left';
       for (let c = 0; c < targetStr.length; c++) {
-        const char = targetStr[c];
+        const char = c === 0 ? targetStr[0] : '.';
         const charWidth = this.ctx.measureText(char).width;
 
         if (c < typedLen) {
-          // Matched character: Glowing Green / Cyan
-          this.ctx.fillStyle = '#00ff66';
-          this.ctx.shadowColor = '#00ff66';
+          // Ký tự đã nhập đúng: xanh thành công
+          this.ctx.fillStyle = '#5EE6A8';
+          this.ctx.shadowColor = '#5EE6A8';
           this.ctx.shadowBlur = 8;
         } else {
           // Unmatched character: Soft Gray / Cyan
@@ -492,7 +512,17 @@ export class GameEngine {
     this.isPaused = false;
   }
 
+  destroy() {
+    this.isRunning = false;
+    clearInterval(this.spawnTimer);
+    clearInterval(this.gameTimer);
+    if (this.handleResize) {
+      window.removeEventListener('resize', this.handleResize);
+    }
+  }
+
   endGame(reason) {
+    if (!this.isRunning) return;
     this.isRunning = false;
     clearInterval(this.spawnTimer);
     clearInterval(this.gameTimer);
@@ -504,6 +534,7 @@ export class GameEngine {
     const result = {
       score: this.score,
       wordsShot: this.wordsShot,
+      missedWords: this.missedWords,
       highestCombo: this.highestCombo,
       accuracy: accuracy,
       duration: Math.round((Date.now() - this.startTime) / 1000),

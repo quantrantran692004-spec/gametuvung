@@ -1,6 +1,21 @@
-import { db } from './db.js';
+import { db } from './db.js?v=3';
 
 export const SAMPLE_VOCAB = [
+  { english: 'apple', vietnamese: 'quả táo', ipa: '/ˈæp.əl/', unit: 'Basic', masteryLevel: 0 },
+  { english: 'book', vietnamese: 'quyển sách', ipa: '/bʊk/', unit: 'Basic', masteryLevel: 0 },
+  { english: 'school', vietnamese: 'trường học', ipa: '/skuːl/', unit: 'Basic', masteryLevel: 0 },
+  { english: 'computer', vietnamese: 'máy tính', ipa: '/kəmˈpjuː.tər/', unit: 'Basic', masteryLevel: 0 },
+  { english: 'water', vietnamese: 'nước', ipa: '/ˈwɔː.tər/', unit: 'Basic', masteryLevel: 0 },
+  { english: 'friend', vietnamese: 'bạn bè', ipa: '/frend/', unit: 'Basic', masteryLevel: 0 },
+  { english: 'beautiful', vietnamese: 'xinh đẹp', ipa: '/ˈbjuː.tɪ.fəl/', unit: 'Basic', masteryLevel: 0 },
+  { english: 'learn', vietnamese: 'học', ipa: '/lɜːn/', unit: 'Basic', masteryLevel: 0 },
+  { english: 'house', vietnamese: 'ngôi nhà', ipa: '/haʊs/', unit: 'Basic', masteryLevel: 0 },
+  { english: 'language', vietnamese: 'ngôn ngữ', ipa: '/ˈlæŋ.ɡwɪdʒ/', unit: 'Basic', masteryLevel: 0 },
+  { english: 'knowledge', vietnamese: 'kiến thức', ipa: '/ˈnɒl.ɪdʒ/', unit: 'Basic', masteryLevel: 0 },
+  { english: 'practice', vietnamese: 'luyện tập', ipa: '/ˈpræk.tɪs/', unit: 'Basic', masteryLevel: 0 },
+  { english: 'environment', vietnamese: 'môi trường', ipa: '/ɪnˈvaɪ.rən.mənt/', unit: 'Basic', masteryLevel: 0 },
+  { english: 'important', vietnamese: 'quan trọng', ipa: '/ɪmˈpɔː.tənt/', unit: 'Basic', masteryLevel: 0 },
+  { english: 'challenge', vietnamese: 'thử thách', ipa: '/ˈtʃæl.ɪndʒ/', unit: 'Basic', masteryLevel: 0 },
   { english: 'laser', vietnamese: 'tia la-de', ipa: '/ˈleɪ.zər/', unit: 'Tech', masteryLevel: 1 },
   { english: 'cyber', vietnamese: 'không gian mạng', ipa: '/ˈsaɪ.bər/', unit: 'Tech', masteryLevel: 0 },
   { english: 'matrix', vietnamese: 'ma trận', ipa: '/ˈmeɪ.trɪks/', unit: 'Tech', masteryLevel: 2 },
@@ -119,6 +134,10 @@ export class VocabManager {
       return true;
     }
     return false;
+  }
+
+  getAll() {
+    return [...this.words];
   }
 
   getGameWords(count = 10, mode = 'all') {

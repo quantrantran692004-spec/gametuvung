@@ -1,4 +1,4 @@
-const CACHE_NAME = 'word-shooter-v2';
+const CACHE_NAME = 'word-shooter-v3';
 const ASSETS = [
   './',
   './index.html',

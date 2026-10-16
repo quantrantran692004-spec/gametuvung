@@ -1,13 +1,13 @@
-import { db } from './db.js';
-import { profileManager } from './profile-manager.js';
-import { vocabManager } from './vocab-manager.js';
-import { statsManager } from './stats-manager.js';
-import { uiManager } from './ui-manager.js';
-import { GameEngine } from './game-engine.js';
-import { t, setLanguage } from './i18n.js';
-import { FileImporter } from './importer.js';
-import { DocExporter } from './doc-exporter.js';
-import { SpacedRepetition } from './spaced-repetition.js';
+import { db } from './db.js?v=3';
+import { profileManager } from './profile-manager.js?v=3';
+import { vocabManager } from './vocab-manager.js?v=3';
+import { statsManager } from './stats-manager.js?v=3';
+import { uiManager } from './ui-manager.js?v=3';
+import { GameEngine } from './game-engine.js?v=3';
+import { t, setLanguage } from './i18n.js?v=3';
+import { FileImporter } from './importer.js?v=3';
+import { DocExporter } from './doc-exporter.js?v=3';
+import { SpacedRepetition } from './spaced-repetition.js?v=3';
 
 class App {
   constructor() {
@@ -87,6 +87,11 @@ class App {
   }
 
   startNewGame() {
+    if (this.game) {
+      this.game.destroy?.();
+      this.game = null;
+    }
+
     const profile = profileManager.getCurrentProfile();
     const settings = profile.settings || {};
 
@@ -96,6 +101,13 @@ class App {
     // Choose mode
     const modeSelect = document.getElementById('game-mode-select');
     const selectedMode = modeSelect ? modeSelect.value : 'survival';
+    const allWords = vocabManager.getAll();
+
+    if (allWords.length === 0) {
+      uiManager.showToast('Chưa có từ vựng. Hãy thêm ít nhất một từ trước khi chơi.', 'error');
+      uiManager.showScreen('screen-vocab');
+      return;
+    }
 
     // Game Engine instance
     this.game = new GameEngine(canvas, {
@@ -104,6 +116,7 @@ class App {
       duration: settings.timerDuration || 60,
       wordDirection: settings.wordDirection || 'en-vi',
       voiceEnabled: settings.voiceEnabled !== false,
+      missPenalty: 25,
       caseSensitive: settings.caseSensitive || false,
       acceptTypos: settings.acceptTypos !== false,
       onHudUpdate: (hud) => {
@@ -126,6 +139,11 @@ class App {
           document.getElementById('hud-time-val').textContent = hud.time + 's';
         }
       },
+      onAnswerFeedback: ({ correct, penalty }) => {
+        if (!correct) {
+          uiManager.showToast(`Sai đáp án: -${penalty} điểm, combo đã reset.`, 'error');
+        }
+      },
       onGameOver: async (result) => {
         // Save session stats
         await statsManager.saveSession({
@@ -133,6 +151,7 @@ class App {
           mode: selectedMode,
           score: result.score,
           wordsShot: result.wordsShot,
+          missedWords: result.missedWords,
           accuracy: result.accuracy,
           highestCombo: result.highestCombo,
           duration: result.duration
@@ -166,7 +185,6 @@ class App {
 
     // Get vocab words based on mode (Section 5)
     let gameWords = [];
-    const allWords = vocabManager.getAll();
 
     if (selectedMode === 'srs') {
       const dueWords = SpacedRepetition.getDueWords(allWords);
@@ -216,10 +234,18 @@ class App {
         } else {
           // Visual shake on input
           input.style.borderColor = 'var(--color-neon-pink)';
+          input.value = '';
           setTimeout(() => input.style.borderColor = 'var(--color-neon-cyan)', 300);
         }
       }
     };
+
+    input?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleFire();
+      }
+    });
 
     // Global keyboard listener for PC (gõ trực tiếp bất cứ lúc nào trên máy tính)
     window.addEventListener('keydown', (e) => {
