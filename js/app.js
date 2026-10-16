@@ -5,6 +5,9 @@ import { statsManager } from './stats-manager.js';
 import { uiManager } from './ui-manager.js';
 import { GameEngine } from './game-engine.js';
 import { t, setLanguage } from './i18n.js';
+import { FileImporter } from './importer.js';
+import { DocExporter } from './doc-exporter.js';
+import { SpacedRepetition } from './spaced-repetition.js';
 
 class App {
   constructor() {
@@ -155,8 +158,16 @@ class App {
       input.focus();
     }, 150);
 
-    // Get vocab words
-    const gameWords = vocabManager.getGameWords(30);
+    // Get vocab words based on mode
+    let gameWords = [];
+    if (selectedMode === 'srs') {
+      const allWords = vocabManager.getAll();
+      const dueWords = SpacedRepetition.getDueWords(allWords);
+      gameWords = dueWords.length >= 5 ? dueWords : vocabManager.getGameWords(30);
+    } else {
+      gameWords = vocabManager.getGameWords(30);
+    }
+
     this.game.start(gameWords, selectedMode);
   }
 
@@ -225,6 +236,88 @@ class App {
         modal.classList.remove('active');
         e.target.reset();
       }
+    });
+
+    // Search filter
+    document.getElementById('vocab-search-input')?.addEventListener('input', (e) => {
+      const q = e.target.value;
+      uiManager.renderVocabList(q);
+    });
+
+    // File Import Button
+    const fileInput = document.getElementById('file-import-input');
+    document.getElementById('btn-open-import')?.addEventListener('click', () => {
+      fileInput.click();
+    });
+
+    fileInput?.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      try {
+        const ext = file.name.split('.').pop().toLowerCase();
+        let parsed = [];
+
+        if (ext === 'csv') {
+          const text = await file.text();
+          parsed = FileImporter.parseCSV(text);
+        } else if (ext === 'txt') {
+          const text = await file.text();
+          parsed = FileImporter.parseTXT(text);
+        } else if (ext === 'xlsx' || ext === 'xls') {
+          const buffer = await file.arrayBuffer();
+          parsed = FileImporter.parseExcel(buffer);
+        } else {
+          alert('Định dạng tệp không được hỗ trợ. Hãy chọn .txt, .csv, hoặc .xlsx!');
+          return;
+        }
+
+        if (parsed.length > 0) {
+          if (confirm(`Tìm thấy ${parsed.length} từ vựng từ tệp "${file.name}". Bạn có muốn nhập vào hệ thống?`)) {
+            await vocabManager.addMultipleWords(parsed);
+            uiManager.renderVocabList();
+            uiManager.showToast(`Đã nhập thành công ${parsed.length} từ vựng!`, 'success');
+          }
+        } else {
+          uiManager.showToast('Không trích xuất được từ nào từ tệp!', 'error');
+        }
+      } catch (err) {
+        console.error('Import error:', err);
+        uiManager.showToast('Lỗi khi đọc file: ' + err.message, 'error');
+      } finally {
+        fileInput.value = '';
+      }
+    });
+
+    // Export Word .docx
+    document.getElementById('btn-export-word')?.addEventListener('click', async () => {
+      const words = vocabManager.getAll();
+      if (words.length === 0) {
+        uiManager.showToast('Không có từ vựng để xuất tài liệu!', 'error');
+        return;
+      }
+      try {
+        uiManager.showToast('Đang tạo tài liệu Word...', 'info');
+        await DocExporter.exportWord(words);
+        uiManager.showToast('Tạo tài liệu Word thành công!', 'success');
+      } catch (err) {
+        console.error('Export Word error:', err);
+        uiManager.showToast('Lỗi khi tạo file Word: ' + err.message, 'error');
+      }
+    });
+
+    // Export CSV
+    document.getElementById('btn-export-csv')?.addEventListener('click', () => {
+      const words = vocabManager.getAll();
+      DocExporter.exportCSV(words);
+      uiManager.showToast('Đã xuất file CSV!', 'success');
+    });
+
+    // Export JSON Backup
+    document.getElementById('btn-export-json')?.addEventListener('click', () => {
+      const words = vocabManager.getAll();
+      DocExporter.exportJSON(words);
+      uiManager.showToast('Đã tải bản sao lưu JSON!', 'success');
     });
   }
 
