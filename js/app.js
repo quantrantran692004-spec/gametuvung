@@ -1,15 +1,15 @@
-import { db } from './db.js?v=14';
-import { profileManager } from './profile-manager.js?v=14';
-import { vocabManager } from './vocab-manager.js?v=14';
-import { statsManager } from './stats-manager.js?v=14';
-import { uiManager } from './ui-manager.js?v=14';
-import { GameEngine } from './game-engine.js?v=14';
-import { t, setLanguage } from './i18n.js?v=14';
-import { FileImporter } from './importer.js?v=14';
-import { DocExporter } from './doc-exporter.js?v=14';
-import { SpacedRepetition } from './spaced-repetition.js?v=14';
-import { getPracticeSentences } from './sentence-manager.js?v=14';
-import { audioManager } from './audio-manager.js?v=14';
+import { db } from './db.js?v=15';
+import { profileManager } from './profile-manager.js?v=15';
+import { vocabManager } from './vocab-manager.js?v=15';
+import { statsManager } from './stats-manager.js?v=15';
+import { uiManager } from './ui-manager.js?v=15';
+import { GameEngine } from './game-engine.js?v=15';
+import { t, setLanguage } from './i18n.js?v=15';
+import { FileImporter } from './importer.js?v=15';
+import { DocExporter } from './doc-exporter.js?v=15';
+import { SpacedRepetition } from './spaced-repetition.js?v=15';
+import { getPracticeSentences } from './sentence-manager.js?v=15';
+import { audioManager } from './audio-manager.js?v=15';
 
 class App {
   constructor() {
@@ -189,7 +189,7 @@ class App {
           document.getElementById('hud-time-val').textContent = hud.time + 's';
         }
       },
-      onAnswerFeedback: ({ correct, penalty }) => {
+      onAnswerFeedback: ({ correct, penalty, autoMiss }) => {
         const arena = document.querySelector('.game-container');
         arena?.classList.remove('feedback-correct', 'feedback-wrong');
         void arena?.offsetWidth;
@@ -197,7 +197,9 @@ class App {
         if (correct) {
           uiManager.showToast('ĐÚNG! Mục tiêu đã bị bắn.', 'success');
         } else {
-          uiManager.showToast(`Sai đáp án: -${penalty} điểm, combo đã reset.`, 'error');
+          uiManager.showToast(autoMiss
+            ? 'SAI! Mục tiêu đã biến mất, hãy chuyển sang mục tiêu tiếp theo.'
+            : `Sai đáp án: -${penalty} điểm, combo đã reset.`, 'error');
         }
       },
       onGameOver: async (result) => {

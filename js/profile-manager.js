@@ -1,4 +1,4 @@
-import { db } from './db.js?v=14';
+import { db } from './db.js?v=15';
 
 export class ProfileManager {
   constructor() {

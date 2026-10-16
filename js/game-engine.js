@@ -1,7 +1,7 @@
-import { AnswerChecker } from './answer-checker.js?v=14';
-import { audioManager } from './audio-manager.js?v=14';
-import { SpacedRepetition } from './spaced-repetition.js?v=14';
-import { vocabManager } from './vocab-manager.js?v=14';
+import { AnswerChecker } from './answer-checker.js?v=15';
+import { audioManager } from './audio-manager.js?v=15';
+import { SpacedRepetition } from './spaced-repetition.js?v=15';
+import { vocabManager } from './vocab-manager.js?v=15';
 
 export class GameEngine {
   constructor(canvas, options = {}) {
@@ -55,6 +55,7 @@ export class GameEngine {
     this.mode = mode;
     this.words = [...vocabList];
     this.activeWords = [];
+    this.selectedTargetId = null;
     this.lasers = [];
     this.particles = [];
     
@@ -171,21 +172,20 @@ export class GameEngine {
     if (!this.isRunning || this.isPaused) return false;
     const clean = input.trim().toLowerCase();
 
-    // Chỉ một mục tiêu được nhận ký tự, không làm lộ tiến độ sang các thẻ khác.
-    let targetIndex = -1;
-    if (clean) {
+    // Khóa cứng một mục tiêu: ký tự đầu chọn thẻ, các ký tự sau không được nhảy sang thẻ khác.
+    let targetIndex = this.activeWords.findIndex(w => w.id === this.selectedTargetId);
+    if (targetIndex === -1 && clean) {
       targetIndex = this.activeWords.findIndex(w => {
         const target = w.target.trim().toLowerCase();
         const prompt = w.prompt.trim().toLowerCase();
         return target.startsWith(clean) || prompt.startsWith(clean);
       });
+      if (targetIndex === -1) targetIndex = 0;
+      this.selectedTargetId = this.activeWords[targetIndex]?.id || null;
     }
-    if (targetIndex === -1) targetIndex = this.activeWords.findIndex(w => w.id === this.selectedTargetId);
-    if (targetIndex === -1) targetIndex = 0;
 
     const w = this.activeWords[targetIndex];
     if (!w) return false;
-    this.selectedTargetId = w.id;
     const targetClean = w.target.trim().toLowerCase();
     const promptClean = w.prompt.trim().toLowerCase();
 
@@ -205,7 +205,28 @@ export class GameEngine {
       this.triggerHit(targetIndex);
       return true;
     }
+
+    // Đã nhập đủ độ dài nhưng sai: mục tiêu tự rời sân, báo sai và mở khóa mục tiêu kế tiếp.
+    if (clean.length >= targetClean.length && clean !== targetClean && clean !== promptClean) {
+      this.missTarget(targetIndex);
+      return true;
+    }
     return false;
+  }
+
+  missTarget(targetIndex) {
+    const missedTarget = this.activeWords[targetIndex];
+    if (!missedTarget) return;
+    this.missedWords++;
+    this.combo = 0;
+    this.lives = Math.max(0, this.lives - 1);
+    this.createExplosion(missedTarget.x + missedTarget.width / 2, missedTarget.y + missedTarget.height / 2, '#FF718B');
+    audioManager.playMiss();
+    this.activeWords.splice(targetIndex, 1);
+    this.selectedTargetId = null;
+    this.onHudUpdate({ score: this.score, combo: 0, lives: this.lives });
+    this.onAnswerFeedback({ correct: false, penalty: this.missPenalty, autoMiss: true });
+    if (this.lives <= 0) this.endGame('out_of_lives');
   }
 
   submitAnswer(input) {
@@ -291,6 +312,7 @@ export class GameEngine {
 
     // Remove word
     this.activeWords.splice(hitIndex, 1);
+    this.selectedTargetId = null;
 
     if (this.mode === 'dictation' && this.isRunning) {
       setTimeout(() => {
@@ -306,7 +328,7 @@ export class GameEngine {
     this.onAnswerFeedback({ correct: true, score: this.score, combo: this.combo });
   }
 
-  createExplosion(x, y) {
+  createExplosion(x, y, forcedColor = null) {
     const count = 18;
     for (let i = 0; i < count; i++) {
       const angle = (Math.PI * 2 / count) * i + (Math.random() * 0.2);
@@ -318,7 +340,7 @@ export class GameEngine {
         vy: Math.sin(angle) * speed,
         life: 1.0,
         decay: 0.03 + Math.random() * 0.02,
-        color: Math.random() > 0.5 ? '#4DE2D0' : '#FF5C8A'
+        color: forcedColor || (Math.random() > 0.5 ? '#4DE2D0' : '#FF5C8A')
       });
     }
   }
