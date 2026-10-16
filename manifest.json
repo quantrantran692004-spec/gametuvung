@@ -1,0 +1,23 @@
+{
+  "name": "WORD SHOOTER - Game Học Từ Vựng",
+  "short_name": "WordShooter",
+  "description": "Game học từ vựng tiếng Anh bắn chữ phong cách Cyberpunk Neon",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0a0a1a",
+  "theme_color": "#00ffff",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' fill='%230a0a1a'/%3E%3Cpolygon points='96,20 170,160 96,130 22,160' fill='none' stroke='%2300ffff' stroke-width='10'/%3E%3Ccircle cx='96' cy='95' r='20' fill='%23ff007f'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%230a0a1a'/%3E%3Cpolygon points='256,50 460,420 256,340 52,420' fill='none' stroke='%2300ffff' stroke-width='25'/%3E%3Ccircle cx='256' cy='250' r='50' fill='%23ff007f'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["education", "games"]
+}
