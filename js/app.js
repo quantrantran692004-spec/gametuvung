@@ -152,6 +152,11 @@ class App {
     // Switch Screen
     uiManager.showScreen('screen-game');
     
+    // Resize canvas to match screen after display block
+    setTimeout(() => {
+      this.game.resizeCanvas();
+    }, 50);
+
     // Focus input
     setTimeout(() => {
       input.value = '';
