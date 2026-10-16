@@ -803,3 +803,34 @@ body { background: var(--color-bg); color: var(--color-text); }
   #screen-profiles > div:first-child { align-items: flex-start !important; }
   #screen-vocab h2, #screen-stats h2, #screen-settings h2, #screen-profiles h2 { font-size: 22px; }
 }
+
+/* Full-screen phone play mode: no page scroll, header, grid or toast distractions. */
+body.game-active {
+  overflow: hidden !important;
+  overscroll-behavior: none;
+  touch-action: none;
+}
+body.game-active .top-nav,
+body.game-active .cyber-grid,
+body.game-active #toast-container { display: none !important; }
+body.game-active #app { height: 100dvh; min-height: 100dvh; }
+body.game-active #screen-game.active {
+  height: 100dvh !important;
+  max-height: 100dvh;
+  padding: 8px !important;
+  overflow: hidden !important;
+}
+body.game-active #screen-game .canvas-wrapper { min-height: 0; }
+body.game-active #screen-game .virtual-keyboard,
+body.game-active #screen-game .vk-key { touch-action: manipulation; }
+.voice-settings-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+.voice-test-btn { min-height: 42px; white-space: nowrap; }
+@media (max-width: 600px) {
+  .voice-settings-grid { grid-template-columns: 1fr; }
+  .voice-test-btn { width: 100%; }
+}

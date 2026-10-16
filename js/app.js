@@ -26,6 +26,7 @@ class App {
       const currentProfile = await profileManager.init();
       audioManager.soundEnabled = currentProfile.settings?.soundEnabled === true;
       audioManager.voiceEnabled = currentProfile.settings?.voiceEnabled === true;
+      audioManager.setVoice(currentProfile.settings?.voiceName || '', currentProfile.settings?.voiceRate || 0.68);
 
       // 3. Initialize Vocabulary
       await vocabManager.init();
@@ -537,6 +538,24 @@ class App {
     setChecked('effect-shake', s.effectShake !== false);
     setChecked('setting-voice', s.voiceEnabled !== false);
     setChecked('setting-sound', s.soundEnabled !== false);
+    setVal('setting-voice-rate', s.voiceRate || 0.68);
+    audioManager.setVoice(s.voiceName || '', s.voiceRate || 0.68);
+    this.populateVoiceOptions(s.voiceName || '');
+  }
+
+  populateVoiceOptions(selectedName = '') {
+    const select = document.getElementById('setting-voice-name');
+    if (!select) return;
+    const voices = audioManager.getEnglishVoices();
+    const current = selectedName || select.value;
+    select.innerHTML = '<option value="">Tự động chọn giọng rõ nhất</option>';
+    voices.forEach(voice => {
+      const option = document.createElement('option');
+      option.value = voice.name;
+      option.textContent = `${voice.name} (${voice.lang})`;
+      select.appendChild(option);
+    });
+    select.value = current;
   }
 
   setupSettingsActions() {
@@ -555,18 +574,29 @@ class App {
         effectParticles: document.getElementById('effect-particles').checked,
         effectShake: document.getElementById('effect-shake').checked,
         voiceEnabled: document.getElementById('setting-voice').checked,
+        voiceName: document.getElementById('setting-voice-name').value,
+        voiceRate: Number(document.getElementById('setting-voice-rate').value) || 0.68,
         soundEnabled: document.getElementById('setting-sound').checked
       };
 
       await profileManager.updateSettings(newSettings);
       audioManager.soundEnabled = newSettings.soundEnabled;
       audioManager.voiceEnabled = newSettings.voiceEnabled;
+      audioManager.setVoice(newSettings.voiceName, newSettings.voiceRate);
       setLanguage(newSettings.language);
 
       // Apply performance class to body
       document.body.className = `perf-${newSettings.perfProfile}`;
 
       uiManager.showToast('Đã lưu cài đặt chi tiết!', 'success');
+    });
+    document.getElementById('btn-test-voice')?.addEventListener('pointerdown', (event) => {
+      event.preventDefault();
+      const name = document.getElementById('setting-voice-name')?.value || '';
+      const rate = Number(document.getElementById('setting-voice-rate')?.value) || 0.68;
+      audioManager.setVoice(name, rate);
+      audioManager.voiceEnabled = true;
+      audioManager.speak('This is a clear English voice test.', 'en-US');
     });
   }
 

@@ -21,6 +21,8 @@ export class ProfileManager {
           perfProfile: 'balanced',
           soundEnabled: true,
           voiceEnabled: false,
+          voiceName: '',
+          voiceRate: 0.68,
           wordDirection: 'en-vi',
           speed: 'normal',
           lives: 5,

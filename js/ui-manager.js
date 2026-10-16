@@ -12,6 +12,7 @@ export class UIManager {
   showScreen(screenId) {
     document.querySelectorAll('.modal-overlay.active').forEach(modal => modal.classList.remove('active'));
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.body.classList.toggle('game-active', screenId === 'screen-game');
     const target = document.getElementById(screenId);
     if (target) {
       target.classList.add('active');

@@ -317,7 +317,25 @@
 
         <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
           <input type="checkbox" id="setting-voice" style="transform: scale(1.3);">
-          <label for="setting-voice" style="font-size: 14px;">Tự động đọc mục tiêu khi xuất hiện (có thể tắt, nút ĐỌC vẫn dùng thủ công)</label>
+          <label for="setting-voice" style="font-size: 14px;">Tự động đọc mục tiêu khi xuất hiện</label>
+        </div>
+
+        <div class="voice-settings-grid" style="margin-bottom: 16px;">
+          <div>
+            <label for="setting-voice-name" style="display: block; font-size: 13px; margin-bottom: 6px;">Giọng đọc tiếng Anh</label>
+            <select id="setting-voice-name" class="cyber-input">
+              <option value="">Tự động chọn giọng rõ nhất</option>
+            </select>
+          </div>
+          <div>
+            <label for="setting-voice-rate" style="display: block; font-size: 13px; margin-bottom: 6px;">Tốc độ đọc</label>
+            <select id="setting-voice-rate" class="cyber-input">
+              <option value="0.55">Chậm, rất rõ</option>
+              <option value="0.68" selected>Vừa, rõ ràng</option>
+              <option value="0.82">Nhanh</option>
+            </select>
+          </div>
+          <button type="button" id="btn-test-voice" class="btn btn-sm voice-test-btn">▶ NGHE THỬ</button>
         </div>
 
         <div style="margin-bottom: 24px; display: flex; align-items: center; gap: 10px;">
