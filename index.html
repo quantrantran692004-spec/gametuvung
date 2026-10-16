@@ -50,13 +50,18 @@
       </div>
 
       <!-- Mode Selector -->
-      <div style="margin-bottom: 25px; width: 100%; max-width: 320px;">
-        <label style="font-size: 12px; color: var(--color-neon-pink); display: block; margin-bottom: 8px; text-transform: uppercase;">Chọn chế độ chơi:</label>
+      <div style="margin-bottom: 25px; width: 100%; max-width: 360px;">
+        <label style="font-size: 12px; color: var(--color-neon-pink); display: block; margin-bottom: 8px; text-transform: uppercase;">Chọn chế độ chơi (Mục 5 Đặc tả):</label>
         <select id="game-mode-select" class="cyber-input" style="text-align: center;">
-          <option value="survival">Sinh tồn (5 Mạng)</option>
-          <option value="timed">Tính giờ (60 Giây)</option>
-          <option value="srs">Ôn từ cần nhớ (Spaced Repetition)</option>
-          <option value="practice">Luyện tập tự do</option>
+          <option value="survival">1. Sinh tồn (Mặc định 5 mạng)</option>
+          <option value="practice">2. Luyện tập tự do</option>
+          <option value="timed">3. Chơi tính giờ (30s / 60s / 120s)</option>
+          <option value="unit">4. Thử thách theo Unit / Bài học</option>
+          <option value="missed">5. Ôn từ sai & hay trượt</option>
+          <option value="favorites">6. Ôn từ yêu thích (★)</option>
+          <option value="srs">7. Luyện từ lâu chưa nhớ (Spaced Repetition)</option>
+          <option value="two_players">8. Đấu luân phiên 2 người (1 Thiết bị)</option>
+          <option value="high_score">9. Thử thách điểm cao (Tốc độ tăng dần)</option>
         </select>
       </div>
 
@@ -228,6 +233,34 @@
         <div style="margin-bottom: 16px;">
           <label style="display: block; font-size: 13px; margin-bottom: 6px;">Số mạng khởi điểm (Chế độ sinh tồn)</label>
           <input type="number" id="setting-lives" class="cyber-input" min="1" max="10" value="5">
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <label style="display: block; font-size: 13px; margin-bottom: 6px;">Thời gian chế độ Tính giờ</label>
+          <select id="setting-timer" class="cyber-input">
+            <option value="30">30 Giây (Chớp nhoáng)</option>
+            <option value="60">60 Giây (Tiêu chuẩn)</option>
+            <option value="120">120 Giây (Bền bỉ)</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <label style="display: block; font-size: 13px; margin-bottom: 6px;">Độ nghiêm ngặt chấm đáp án (Mục 7)</label>
+          <select id="setting-strictness" class="cyber-input">
+            <option value="lenient">Dễ dãi (Chấp nhận lỗi gõ phím nhỏ, bỏ dấu câu)</option>
+            <option value="normal">Tiêu chuẩn (Fuzzy match 1 ký tự)</option>
+            <option value="strict">Nghiêm ngặt (Chính xác 100%, phân biệt chữ hoa/thường)</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <label style="display: block; font-size: 13px; margin-bottom: 6px;">Tùy chỉnh tắt riêng hiệu ứng (Mục 3)</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; margin-top: 4px;">
+            <label><input type="checkbox" id="effect-neon" checked> Hiệu ứng Neon Glow</label>
+            <label><input type="checkbox" id="effect-laser" checked> Tia Laser pháo</label>
+            <label><input type="checkbox" id="effect-particles" checked> Hạt sáng phát nổ</label>
+            <label><input type="checkbox" id="effect-shake" checked> Rung màn hình khi trượt</label>
+          </div>
         </div>
 
         <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
