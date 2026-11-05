@@ -3,7 +3,7 @@ name: Build and deploy Word Shooter to GitHub Pages
 on:
   push:
     branches:
-      - codex/word-shooter-rebuild
+      - main
   workflow_dispatch:
 
 permissions:
