@@ -1,4 +1,5 @@
 import { motion } from 'motion/react';
+import { useState } from 'react';
 
 type HomeData = {
   profile?: { name?: string };
@@ -12,13 +13,15 @@ type HomeData = {
 type Props = { data: HomeData; selectedMode: string; pool: string };
 
 const modes = [
-  { id: 'practice', pool: 'all', icon: '◎', title: 'LUYỆN TẬP', detail: 'Bắt nhịp, nhớ từ nhanh', tone: 'blue' },
-  { id: 'practice', pool: 'review', icon: '↻', title: 'ÔN TỪ SAI', detail: '', tone: 'green' },
-  { id: 'timed', pool: 'all', icon: '◷', title: 'TÍNH GIỜ', detail: '', tone: 'gold' },
-  { id: 'survival', pool: 'all', icon: '∞', title: 'SINH TỒN', detail: '5 mạng · trụ càng lâu', tone: 'violet' },
+  { id: 'practice', pool: 'all', icon: '🎯', title: 'LUYỆN TẬP', detail: 'Bắt nhịp, nhớ từ nhanh', tone: 'blue' },
+  { id: 'practice', pool: 'review', icon: '🔄', title: 'ÔN TỪ SAI', detail: '', tone: 'green' },
+  { id: 'timed', pool: 'all', icon: '⏱️', title: 'TÍNH GIỜ', detail: '', tone: 'gold' },
+  { id: 'survival', pool: 'all', icon: '🛡️', title: 'SINH TỒN', detail: '5 mạng · trụ càng lâu', tone: 'violet' },
 ];
 
 export default function HomeLobby({ data, selectedMode, pool }: Props) {
+  const [theme, setTheme] = useState(() => { try { return localStorage.getItem('word-shooter-lobby-theme') || 'meadow'; } catch { return 'meadow'; } });
+  const changeTheme = (value: string) => { setTheme(value); try { localStorage.setItem('word-shooter-lobby-theme', value); } catch { /* The theme remains active for this session. */ } };
   const profileName = data.profile?.name || 'người chơi';
   const dueCount = data.dueWords?.length || 0;
   const totalWords = data.words?.length || 0;
@@ -31,7 +34,7 @@ export default function HomeLobby({ data, selectedMode, pool }: Props) {
   const timer = data.settings?.timerDuration || 60;
 
   return (
-    <section className="screen home-screen">
+    <section className="screen home-screen" data-theme={theme}>
       <header className="lobby-topbar">
         <button className="lobby-player" type="button" data-action="open-profiles" aria-label="Đổi người chơi">
           <span className="lobby-avatar">{Array.from(profileName.trim())[0]?.toUpperCase() || 'P'}</span>
@@ -43,6 +46,7 @@ export default function HomeLobby({ data, selectedMode, pool }: Props) {
           <span className="lobby-player-stats"><b>{totalWords}</b><small>TỪ TRONG KHO</small></span>
         </button>
         <div className="lobby-tools">
+          <label className="lobby-theme-picker"><span>Giao diện</span><select aria-label="Chọn giao diện trang chủ" value={theme} onChange={event => changeTheme(event.target.value)}><option value="meadow">Vườn từ vựng</option><option value="academy">Học viện</option><option value="space">Không gian</option></select></label>
           <span className="lobby-daily"><span>✦</span><b>{dailyCount}</b><small>TỪ HÔM NAY</small></span>
           <motion.button className="lobby-icon-button" type="button" data-action="test-voice" aria-label="Kiểm tra âm thanh" whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}>◖))</motion.button>
           <motion.button className="lobby-icon-button" type="button" data-route="settings" aria-label="Cài đặt" whileHover={{ rotate: 14 }} whileTap={{ scale: 0.94 }}>⚙</motion.button>
@@ -59,7 +63,7 @@ export default function HomeLobby({ data, selectedMode, pool }: Props) {
         <span className="lobby-session-note">{sessionSize} MỤC TIÊU · {dueCount ? `${dueCount} TỪ CẦN ÔN` : 'TIẾN ĐỘ ĐƯỢC LƯU TRÊN MÁY'}</span>
       </section>
 
-      <section className="lobby-modes" aria-labelledby="lobby-modes-title">
+      <div className="lobby-bottom-panel"><section className="lobby-modes" aria-labelledby="lobby-modes-title">
         <header className="lobby-section-title"><span className="lobby-title-line" /><h2 id="lobby-modes-title">CHỌN CHẾ ĐỘ CHƠI</h2><span className="lobby-title-line" /></header>
         <div className="lobby-mode-grid" role="group" aria-label="Chế độ chơi">
           {modes.map(mode => {
@@ -75,12 +79,12 @@ export default function HomeLobby({ data, selectedMode, pool }: Props) {
         </div>
       </section>
 
-      <nav className="lobby-utilities" aria-label="Tiện ích">
-        <button type="button" className="lobby-utility" data-route="vocabulary"><span className="utility-art">▤</span><span><b>Kho từ vựng</b><small>Quản lý và học từ</small></span><i>›</i></button>
-        <button type="button" className="lobby-utility" data-action="import-words"><span className="utility-art">⇧</span><span><b>Nhập tài liệu</b><small>Tạo bộ từ từ tệp</small></span><i>›</i></button>
+      <section className="lobby-utilities-section"><header className="lobby-section-title"><span className="lobby-title-line" /><h2>TIỆN ÍCH HỌC TẬP</h2><span className="lobby-title-line" /></header><nav className="lobby-utilities" aria-label="Tiện ích">
+        <button type="button" className="lobby-utility" data-route="vocabulary"><span className="utility-art">📘</span><span><b>Kho từ vựng</b><small>Quản lý và học từ</small></span><i>›</i></button>
+        <button type="button" className="lobby-utility" data-action="import-words"><span className="utility-art">📄</span><span><b>Nhập tài liệu</b><small>Tạo bộ từ từ tệp</small></span><i>›</i></button>
         <button type="button" className="lobby-utility" data-route="progress"><span className="utility-art">🏆</span><span><b>Thành tích</b><small>{Number(stats.totalGames || 0)} lượt · {hits} từ trúng</small></span><i>›</i></button>
-        <button type="button" className="lobby-utility" data-route="settings"><span className="utility-art">⚙</span><span><b>Cài đặt</b><small>Âm thanh và trải nghiệm</small></span><i>›</i></button>
-      </nav>
+        <button type="button" className="lobby-utility" data-route="settings"><span className="utility-art">⚙️</span><span><b>Cài đặt</b><small>Âm thanh và trải nghiệm</small></span><i>›</i></button>
+      </nav></section></div>
     </section>
   );
 }
