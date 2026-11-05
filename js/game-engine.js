@@ -445,6 +445,10 @@ export class GameEngine {
         this.totalAttempts++;
         this.missedWords++;
         this.activeWords.splice(i, 1);
+        if (w.id === this.selectedTargetId) {
+          this.selectedTargetId = null;
+          this.onAnswerFeedback({ correct: false, autoMiss: true });
+        }
         this.combo = 0;
         audioManager.playMiss();
 
@@ -545,10 +549,10 @@ export class GameEngine {
       ctx.shadowColor = selected ? '#ff654f' : '#60bfff'; ctx.shadowBlur = this.reducedEffects ? 0 : (selected ? 26 : 14); ctx.fill();
       ctx.shadowBlur = 0; ctx.lineWidth = selected ? 2.2 : 1.4; ctx.strokeStyle = selected ? '#ff8967' : '#79cbff'; ctx.stroke();
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.font = '600 11px "DM Sans", sans-serif'; ctx.fillStyle = selected ? '#ffc58b' : '#b5dcff';
+      ctx.font = '600 11px "DM Sans", sans-serif'; ctx.fillStyle = selected ? '#ffe1b1' : '#bdefff';
       ctx.fillText(w.prompt, w.x + w.width / 2, w.y + 18, w.width - 18);
       const targetSize = Math.min(21, Math.max(14, 265 / Math.max(w.target.length, 9)));
-      ctx.font = `700 ${targetSize}px "DM Sans", sans-serif`; ctx.fillStyle = '#ffffff';
+      ctx.font = `800 ${targetSize}px "DM Sans", sans-serif`; ctx.fillStyle = selected ? '#fff5cf' : '#fff1a6';
       ctx.shadowColor = '#87caff'; ctx.shadowBlur = this.reducedEffects ? 0 : 8;
       ctx.fillText(w.target, w.x + w.width / 2, w.y + 48, w.width - 20);
       ctx.restore();

@@ -9,7 +9,7 @@ import { SpacedRepetition } from './spaced-repetition.js?v=31';
 import { audioManager } from './audio-manager.js?v=31';
 
 class App {
-  constructor() { this.game = null; this.mode = 'survival'; this.pool = 'all'; this.startedAt = 0; }
+  constructor() { this.game = null; this.mode = 'survival'; this.pool = 'all'; this.startedAt = 0; this.currentRoute = 'home'; this.routeStack = []; }
 
   async init() {
     try {
@@ -36,6 +36,7 @@ class App {
     document.addEventListener('click', event => this.handleClick(event));
     document.addEventListener('submit', event => this.handleSubmit(event));
     document.addEventListener('input', event => this.handleInput(event));
+    document.addEventListener('compositionend', event => { if (event.target.id === 'game-input') { const input = event.target; window.setTimeout(() => { if (input.isConnected && input.value) this.handleInput({ target: input, isComposing: false }); }, 0); } });
     document.addEventListener('change', event => this.handleChange(event));
     window.speechSynthesis?.addEventListener('voiceschanged', () => this.populateVoices());
     document.addEventListener('keydown', event => {
@@ -50,9 +51,7 @@ class App {
     const profile = profileManager.getCurrentProfile();
     const words = vocabManager.getAll();
     const stats = await statsManager.getProfileStats(profile.id);
-    const sessions = stats.recentSessions || [];
-    const today = new Date().toDateString();
-    const todayWords = sessions.filter(item => new Date(item.playedAt).toDateString() === today).reduce((sum, item) => sum + (item.wordsShot || 0), 0);
+    const todayWords = stats.todayWords || 0;
     const masteryCounts = Array.from({ length: 6 }, (_, level) => words.filter(word => Math.min(5, Number(word.masteryLevel) || 0) === level).length);
     const visibleWords = words.filter(word => {
       const query = uiManager.libraryQuery.trim().toLowerCase();
@@ -63,7 +62,9 @@ class App {
     return { profile, profiles: profileManager.profiles, settings: profile.settings || {}, words, visibleWords, stats, dueWords: SpacedRepetition.getDueWords(words), todayWords, masteryCounts };
   }
 
-  async navigate(route) {
+  async navigate(route, remember = true) {
+    if (remember && route !== this.currentRoute) this.routeStack.push(this.currentRoute);
+    this.currentRoute = route;
     const state = await this.snapshot();
     uiManager.showRoute(route, state);
     if (route === 'settings') this.populateVoices();
@@ -86,6 +87,7 @@ class App {
     const button = event.target.closest('[data-action]');
     if (!button) return;
     const action = button.dataset.action;
+    if (action === 'go-back') { await this.navigate(this.routeStack.pop() || 'home', false); return; }
     if (action === 'toggle-menu') {
       document.body.classList.toggle('menu-open');
       button.setAttribute('aria-expanded', document.body.classList.contains('menu-open'));
@@ -155,7 +157,8 @@ class App {
 
   handleInput(event) {
     if (event.target.id === 'game-input' && this.game?.isRunning && !this.game.isPaused) {
-      this.game.updateTypingProgress(event.target.value);
+      if (event.isComposing || event.inputType === 'insertCompositionText') return;
+      if (this.game.updateTypingProgress(event.target.value)) event.target.value = '';
     } else if (event.target.id === 'library-search') {
       uiManager.libraryQuery = event.target.value;
       this.snapshot().then(state => uiManager.renderWordResults(state.visibleWords));
@@ -178,7 +181,7 @@ class App {
       ? vocabManager.getAll().filter(word => (String(word.unit || 'General').trim() || 'General') === lessonUnit).sort(() => Math.random() - 0.5).slice(0, Number(settings.sessionSize) || 10)
       : vocabManager.getGameWords(Number(settings.sessionSize) || 10, this.pool);
     if (this.mode === 'survival' || this.mode === 'practice' || this.mode === 'timed') {
-      if (!words.length) { uiManager.showToast('Thêm ít nhất một từ để bắt đầu.', 'error'); await this.navigate('vocabulary'); return; }
+      if (!words.length) { uiManager.showToast(this.pool === 'review' ? 'Không có từ cần ôn trong kho.' : this.pool === 'lesson' ? 'Bài học này chưa có từ.' : 'Thêm ít nhất một từ để bắt đầu.', 'error'); await this.navigate('vocabulary'); return; }
     }
     this.destroyGame();
     const configuredLives = Number(settings.lives) || 5;

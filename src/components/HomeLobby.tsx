@@ -2,7 +2,7 @@ import { motion } from 'motion/react';
 import { useState } from 'react';
 
 type HomeData = {
-  profile?: { name?: string };
+  profile?: { name?: string; avatar?: string };
   stats?: { totalWords?: number; totalGames?: number };
   dueWords?: unknown[];
   todayWords?: number;
@@ -39,7 +39,7 @@ export default function HomeLobby({ data, selectedMode, pool }: Props) {
     <section className="screen home-screen" data-theme={theme}>
       <header className="lobby-topbar">
         <button className="lobby-player" type="button" data-action="open-profiles" aria-label="Đổi người chơi">
-          <span className="lobby-avatar">{Array.from(profileName.trim())[0]?.toUpperCase() || 'P'}</span>
+          <span className="lobby-avatar">{data.profile?.avatar || Array.from(profileName.trim())[0]?.toUpperCase() || 'P'}</span>
           <span className="lobby-player-copy">
             <strong>{profileName}</strong>
             <small>LV. {level} · {levelHits}/20 TỪ TRÚNG</small>

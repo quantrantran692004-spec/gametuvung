@@ -24,6 +24,8 @@ export class StatsManager {
 
     const totalGames = userSessions.length;
     const totalWords = userSessions.reduce((acc, s) => acc + (s.wordsShot || 0), 0);
+    const today = new Date().toDateString();
+    const todayWords = userSessions.filter(s => new Date(s.playedAt).toDateString() === today).reduce((sum, s) => sum + (s.wordsShot || 0), 0);
     const highestScore = userSessions.reduce((max, s) => Math.max(max, s.score || 0), 0);
     const avgAccuracy = totalGames > 0
       ? Math.round(userSessions.reduce((acc, s) => acc + (s.accuracy || 0), 0) / totalGames)
@@ -32,6 +34,7 @@ export class StatsManager {
     return {
       totalGames,
       totalWords,
+      todayWords,
       highestScore,
       avgAccuracy,
       recentSessions: userSessions.sort((a, b) => new Date(b.playedAt) - new Date(a.playedAt)).slice(0, 10)
@@ -40,3 +43,4 @@ export class StatsManager {
 }
 
 export const statsManager = new StatsManager();
+

@@ -53,6 +53,8 @@ export class UIManager {
     this.gameReactRoot = null;
     this.gameRoot.replaceChildren();
     this.route = route;
+    document.body.dataset.page = route;
+    try { document.body.dataset.lobbyTheme = localStorage.getItem('word-shooter-lobby-theme') || 'meadow'; } catch { document.body.dataset.lobbyTheme = 'meadow'; }
     this.appShell.hidden = false;
     this.gameShell.hidden = true;
     document.body.classList.remove('game-active', 'menu-open');
@@ -74,11 +76,16 @@ export class UIManager {
     else if (route === 'progress') this.root.innerHTML = this.progressPage(data);
     else if (route === 'settings') this.root.innerHTML = this.settingsPage(data);
     else this.root.innerHTML = this.homePage(data);
+    if (route !== 'home') {
+      const back = document.createElement('button');
+      back.type = 'button'; back.className = 'page-back-button'; back.dataset.action = 'go-back';
+      back.textContent = '← Quay lại'; this.root.prepend(back);
+    }
   }
 
   updateProfile(profile, profiles) {
     const name = profile?.name || 'Người chơi';
-    const initial = Array.from(name.trim())[0]?.toUpperCase() || 'P';
+    const initial = profile?.avatar || Array.from(name.trim())[0]?.toUpperCase() || 'P';
     const shortName = name.length > 20 ? `${name.slice(0, 18)}…` : name;
     ['sidebar-profile-name', 'topbar-profile-name'].forEach(id => {
       const node = document.getElementById(id);
@@ -234,9 +241,9 @@ export class UIManager {
     const progressLabel = document.getElementById('hud-progress-label');
     const lives = document.getElementById('hud-lives');
     const progressValue = document.getElementById('hud-progress-value');
-    if (score) score.textContent = Number(state.score || 0).toLocaleString('vi-VN');
-    if (combo) combo.textContent = `${Number(state.combo || 0)}×`;
-    if (time) time.textContent = state.timeLabel || '∞';
+    if (score && state.score !== undefined) score.textContent = Number(state.score).toLocaleString('vi-VN');
+    if (combo && state.combo !== undefined) combo.textContent = `${Number(state.combo)}×`;
+    if (time && state.timeLabel !== undefined) time.textContent = state.timeLabel || '∞';
     if (progressLabel) progressLabel.textContent = state.progressLabel || '';
     if (progress) progress.style.width = `${Math.max(0, Math.min(100, Number(state.progress || 0)))}%`;
     if (progressValue && state.progressPercent !== undefined) progressValue.textContent = `${state.progressPercent}%`;

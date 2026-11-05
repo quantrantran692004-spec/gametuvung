@@ -1,4 +1,5 @@
 import { db } from './db.js?v=31';
+import { SpacedRepetition } from './spaced-repetition.js?v=31';
 
 export const SAMPLE_VOCAB = [
   { english: 'apple', vietnamese: 'quả táo', ipa: '/ˈæp.əl/', unit: 'Basic', masteryLevel: 0 },
@@ -145,9 +146,8 @@ export class VocabManager {
     if (mode === 'favorites') {
       pool = pool.filter(w => w.isFavorite);
     } else if (mode === 'review') {
-      pool = pool.filter(w => w.needsReview || w.masteryLevel < 2);
+      pool = SpacedRepetition.getDueWords(pool);
     }
-    if (pool.length === 0) pool = [...this.words]; // Fallback
     
     // Shuffle
     pool.sort(() => Math.random() - 0.5);
@@ -156,3 +156,4 @@ export class VocabManager {
 }
 
 export const vocabManager = new VocabManager();
+
