@@ -37,6 +37,7 @@ class App {
     document.addEventListener('submit', event => this.handleSubmit(event));
     document.addEventListener('input', event => this.handleInput(event));
     document.addEventListener('change', event => this.handleChange(event));
+    window.speechSynthesis?.addEventListener('voiceschanged', () => this.populateVoices());
     document.addEventListener('keydown', event => {
       if (event.key === 'Escape' && this.game?.isRunning) this.pauseGame();
       if (event.key === 'Tab' && this.game?.isRunning && !this.game.isPaused) {
@@ -65,7 +66,18 @@ class App {
   async navigate(route) {
     const state = await this.snapshot();
     uiManager.showRoute(route, state);
+    if (route === 'settings') this.populateVoices();
     if (route === 'vocabulary') document.querySelector('#library-search')?.focus({ preventScroll: true });
+  }
+
+  populateVoices() {
+    const select = document.getElementById('voice-select');
+    if (!select) return;
+    const selected = select.value || profileManager.getCurrentProfile()?.settings?.voiceName || '';
+    select.replaceChildren(new Option('Giọng mặc định của thiết bị', ''));
+    for (const voice of audioManager.getEnglishVoices()) select.add(new Option(`${voice.name} (${voice.lang})`, voice.name));
+    if (selected && !Array.from(select.options).some(option => option.value === selected)) select.add(new Option(`${selected} (không có trên thiết bị này)`, selected));
+    select.value = selected;
   }
 
   async handleClick(event) {
@@ -105,7 +117,7 @@ class App {
     else if (action === 'delete-word') await this.deleteWord(button.dataset.wordId);
     else if (action === 'open-profiles') document.getElementById('profile-dialog')?.showModal();
     else if (action === 'switch-profile') await this.switchProfile(button.dataset.profileId);
-    else if (action === 'test-voice') { audioManager.voiceEnabled = true; audioManager.speak('Ready. Type the word before it falls.', 'en-US'); }
+    else if (action === 'test-voice') { const form = document.getElementById('settings-form'); const enabled = audioManager.voiceEnabled; const name = audioManager.voiceName; const rate = audioManager.voiceRate; if (form) audioManager.setVoice(form.elements.voiceName.value, form.elements.voiceRate.value); audioManager.voiceEnabled = true; audioManager.speak('Ready. Type the word before it falls.', 'en-US'); audioManager.voiceEnabled = enabled; audioManager.setVoice(name, rate); }
   }
 
   async handleSubmit(event) {
@@ -134,6 +146,7 @@ class App {
       ['acceptTypos', 'voiceEnabled', 'soundEnabled', 'reducedEffects'].forEach(key => settings[key] = form.elements[key].checked);
       ['lives', 'timerDuration', 'sessionSize'].forEach(key => settings[key] = Number(settings[key]));
       settings.voiceRate = Number(settings.voiceRate);
+      settings.fallSeconds = Math.max(5, Math.min(60, Number(settings.fallSeconds) || 14));
       await profileManager.updateSettings(settings); this.applyAudioSettings(profileManager.getCurrentProfile().settings);
       uiManager.showToast('Đã lưu cài đặt cho hồ sơ này.', 'success'); await this.navigate('settings');
     }
@@ -166,12 +179,14 @@ class App {
     this.destroyGame();
     const configuredLives = Number(settings.lives) || 5;
     await uiManager.startGame(profileManager.getCurrentProfile(), { remaining: words.length, progress: 0, progressLabel: `${words.length} từ trong lượt`, timeLabel: this.mode === 'timed' ? `${settings.timerDuration || 60}s` : '', score: 0, combo: 0, lives: configuredLives, maxLives: this.mode === 'survival' ? configuredLives : undefined }, { poolLabel: this.pool === 'all' ? 'Kho từ' : this.pool === 'review' ? 'Từ cần ôn' : 'Từ yêu thích', modeLabel: { survival: 'Sinh tồn', timed: '60 giây', practice: 'Luyện tập' }[this.mode] || 'Sinh tồn', reducedEffects: settings.reducedEffects === true });
+    const keyboard = document.querySelector('.virtual-keyboard');
+    if (keyboard) keyboard.dataset.size = settings.keyboardSize || 'normal';
     const canvas = document.getElementById('game-canvas');
     const gameInput = document.getElementById('game-input');
     if (gameInput) gameInput.readOnly = window.matchMedia('(max-width: 720px)').matches;
     this.startedAt = Date.now();
     this.game = new GameEngine(canvas, {
-      lives: Number(settings.lives) || 5, speed: settings.speed || 'normal', duration: Number(settings.timerDuration) || 60,
+      lives: Number(settings.lives) || 5, speed: settings.speed || 'normal', fallSeconds: Number(settings.fallSeconds) || ({ slow: 18, normal: 14, fast: 9 }[settings.speed] || 14), duration: Number(settings.timerDuration) || 60,
       wordDirection: 'en-vi', autoSpeak: settings.voiceEnabled === true, voiceEnabled: settings.voiceEnabled === true,
       acceptTypos: settings.acceptTypos !== false, caseSensitive: false, missPenalty: 15,
       reducedEffects: settings.reducedEffects === true,
@@ -179,7 +194,7 @@ class App {
       onAnswerFeedback: feedback => {
         if (feedback.correct) {
           const input = document.getElementById('game-input'); if (input) input.value = '';
-          uiManager.setGameFeedback(feedback.upgraded ? 'Trúng đích! Súng đã nâng cấp.' : 'Trúng đích!', 'correct');
+          uiManager.setGameFeedback('');
         } else {
           if (feedback.autoMiss) { const input = document.getElementById('game-input'); if (input) input.value = ''; }
           uiManager.setGameFeedback('Từ đã chạm vạch — giữ nhịp nhé.', 'wrong');
@@ -248,3 +263,4 @@ class App {
 const app = new App();
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => app.init(), { once: true });
 else void app.init();
+

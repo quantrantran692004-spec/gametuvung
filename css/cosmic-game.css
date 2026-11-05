@@ -44,3 +44,11 @@
 .virtual-keyboard{width:min(1100px,100%)}
 @media(max-width:800px){.answer-deck,.virtual-keyboard{width:100%}}
 .pixi-stage{position:absolute;inset:0;z-index:2;overflow:hidden;pointer-events:none}.pixi-stage canvas,.pixi-game-canvas{display:block;width:100%;height:100%}.arena-wrap.pixi-ready #game-canvas{display:none}
+
+/* Larger touch targets for the in-game keyboard on phones. */
+@media (max-width: 800px) {
+  .virtual-keyboard .virtual-key { height: clamp(38px, 5.5vh, 46px); font-size: 14px; }
+  .virtual-keyboard[data-size="large"] .virtual-key { height: clamp(44px, 6.2vh, 52px); font-size: 15px; }
+  .virtual-keyboard[data-size="extra"] .virtual-key { height: clamp(50px, 7vh, 58px); font-size: 16px; }
+}
+

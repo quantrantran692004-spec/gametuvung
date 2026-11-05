@@ -190,9 +190,7 @@ export class GameEngine {
     
     // Keep a readable reaction window across phone and desktop. Speeds are
     // derived from the actual arena height instead of fixed screen pixels.
-    const fallSeconds = this.mode === 'practice'
-      ? 22
-      : (this.options.speed === 'fast' ? 9 : (this.options.speed === 'slow' ? 18 : 14));
+    const fallSeconds = Math.max(5, Math.min(60, Number(this.options.fallSeconds) || (this.mode === 'practice' ? 22 : (this.options.speed === 'fast' ? 9 : (this.options.speed === 'slow' ? 18 : 14)))));
     const spawnY = y;
     const targetHeight = 72;
     const speedBase = Math.max(1, (this.canvas.height - spawnY - targetHeight) / fallSeconds);
@@ -640,5 +638,6 @@ export class GameEngine {
     this.onGameOver(result);
   }
 }
+
 
 
