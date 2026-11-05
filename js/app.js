@@ -178,7 +178,7 @@ class App {
     }
     this.destroyGame();
     const configuredLives = Number(settings.lives) || 5;
-    await uiManager.startGame(profileManager.getCurrentProfile(), { remaining: words.length, progress: 0, progressLabel: `${words.length} từ trong lượt`, timeLabel: this.mode === 'timed' ? `${settings.timerDuration || 60}s` : '', score: 0, combo: 0, lives: configuredLives, maxLives: this.mode === 'survival' ? configuredLives : undefined }, { poolLabel: this.pool === 'all' ? 'Kho từ' : this.pool === 'review' ? 'Từ cần ôn' : 'Từ yêu thích', modeLabel: { survival: 'Sinh tồn', timed: '60 giây', practice: 'Luyện tập' }[this.mode] || 'Sinh tồn', reducedEffects: settings.reducedEffects === true });
+    await uiManager.startGame(profileManager.getCurrentProfile(), { remaining: words.length, progress: 0, progressLabel: `${words.length} từ trong lượt`, timeLabel: this.mode === 'timed' ? `${settings.timerDuration || 60}s` : '', score: 0, combo: 0, lives: configuredLives, maxLives: this.mode === 'survival' ? configuredLives : undefined }, { poolLabel: this.pool === 'all' ? 'Kho từ' : this.pool === 'review' ? 'Từ cần ôn' : 'Từ yêu thích', modeLabel: { survival: 'Sinh tồn', timed: `${Number(settings.timerDuration) || 60} giây`, practice: 'Luyện tập' }[this.mode] || 'Sinh tồn', reducedEffects: settings.reducedEffects === true });
     const keyboard = document.querySelector('.virtual-keyboard');
     if (keyboard) keyboard.dataset.size = settings.keyboardSize || 'normal';
     const canvas = document.getElementById('game-canvas');

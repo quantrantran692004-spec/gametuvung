@@ -5,7 +5,7 @@ type HomeData = {
   stats?: { totalWords?: number; totalGames?: number };
   dueWords?: unknown[];
   todayWords?: number;
-  settings?: { sessionSize?: number; timerDuration?: number };
+  settings?: { sessionSize?: number; timerDuration?: number; lives?: number };
   words?: unknown[];
 };
 
@@ -65,7 +65,7 @@ export default function HomeLobby({ data, selectedMode, pool }: Props) {
           {modes.map(mode => {
             const active = selectedMode === mode.id && pool === mode.pool;
             const disabled = mode.pool === 'review' && dueCount === 0;
-            const detail = mode.pool === 'review' ? `${dueCount} từ đang chờ ôn` : mode.id === 'timed' ? `Ghi điểm trong ${timer} giây` : mode.detail;
+            const detail = mode.pool === 'review' ? `${dueCount} từ đang chờ ôn` : mode.id === 'timed' ? `Ghi điểm trong ${timer} giây` : mode.id === 'survival' ? `${data.settings?.lives || 5} mạng · trụ càng lâu` : mode.detail;
             return (
               <motion.button key={`${mode.id}-${mode.pool}`} type="button" className={`lobby-mode-card tone-${mode.tone} ${active ? 'is-selected' : ''}`} data-action="select-mode" data-mode={mode.id} data-pool={mode.pool} aria-pressed={active} disabled={disabled} whileHover={disabled ? undefined : { y: -3 }} whileTap={disabled ? undefined : { scale: 0.98 }}>
                 <span className="mode-art">{mode.icon}</span><span className="lobby-mode-copy"><strong>{mode.title}</strong><small>{detail}</small></span><span className="mode-chevron">›</span>
