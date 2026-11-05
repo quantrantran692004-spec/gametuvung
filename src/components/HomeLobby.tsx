@@ -7,16 +7,17 @@ type HomeData = {
   dueWords?: unknown[];
   todayWords?: number;
   settings?: { sessionSize?: number; timerDuration?: number; lives?: number };
-  words?: unknown[];
+  words?: { unit?: string }[];
 };
 
 type Props = { data: HomeData; selectedMode: string; pool: string };
 
 const modes = [
-  { id: 'practice', pool: 'all', icon: '🎯', title: 'LUYỆN TẬP', detail: 'Bắt nhịp, nhớ từ nhanh', tone: 'blue' },
-  { id: 'practice', pool: 'review', icon: '🔄', title: 'ÔN TỪ SAI', detail: '', tone: 'green' },
+  { id: 'practice', pool: 'all', icon: '🎯', title: 'LUYỆN TẬP', detail: 'Làm quen và củng cố từ vựng', tone: 'blue' },
+  { id: 'survival', pool: 'all', icon: '🏆', title: 'SINH TỒN', detail: 'Trả lời liên tục, trụ càng lâu', tone: 'rose' },
   { id: 'timed', pool: 'all', icon: '⏱️', title: 'TÍNH GIỜ', detail: '', tone: 'gold' },
-  { id: 'survival', pool: 'all', icon: '🛡️', title: 'SINH TỒN', detail: '5 mạng · trụ càng lâu', tone: 'violet' },
+  { id: 'practice', pool: 'lesson', icon: '📖', title: 'THỬ THÁCH BÀI HỌC', detail: 'Chinh phục từ vựng theo chủ đề', tone: 'violet' },
+  { id: 'practice', pool: 'review', icon: '🔄', title: 'ÔN TẬP TỪ SAI', detail: '', tone: 'green' },
 ];
 
 export default function HomeLobby({ data, selectedMode, pool }: Props) {
@@ -32,6 +33,7 @@ export default function HomeLobby({ data, selectedMode, pool }: Props) {
   const dailyCount = data.todayWords || 0;
   const sessionSize = data.settings?.sessionSize || 10;
   const timer = data.settings?.timerDuration || 60;
+  const units = [...new Set((data.words || []).map(word => String(word.unit || 'General').trim() || 'General'))].sort((a,b) => a.localeCompare(b));
 
   return (
     <section className="screen home-screen" data-theme={theme}>
@@ -54,6 +56,7 @@ export default function HomeLobby({ data, selectedMode, pool }: Props) {
       </header>
 
       <section className="lobby-hero" aria-labelledby="lobby-title">
+        <div className="lobby-floating-words" aria-hidden="true"><span>Vocabulary!</span><span>English</span><span>Learn</span><span>Practice</span><span>Challenge</span></div>
         <div className="lobby-brand-kicker">ENGLISH VOCABULARY ARCADE</div>
         <h1 id="lobby-title">WORD <span>SHOOTER</span></h1>
         <p>Nghe từ · gõ thật nhanh · bắn trúng mục tiêu</p>
@@ -77,6 +80,7 @@ export default function HomeLobby({ data, selectedMode, pool }: Props) {
             );
           })}
         </div>
+        <label id="lesson-choice" className="lobby-lesson-choice" hidden={pool !== 'lesson'}>Chọn bài học <select id="lesson-unit" aria-label="Chọn bài học">{units.map(unit => <option key={unit} value={unit}>{unit}</option>)}</select></label>
       </section>
 
       <section className="lobby-utilities-section"><header className="lobby-section-title"><span className="lobby-title-line" /><h2>TIỆN ÍCH HỌC TẬP</h2><span className="lobby-title-line" /></header><nav className="lobby-utilities" aria-label="Tiện ích">
@@ -88,3 +92,4 @@ export default function HomeLobby({ data, selectedMode, pool }: Props) {
     </section>
   );
 }
+

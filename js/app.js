@@ -94,6 +94,7 @@ class App {
       this.pool = button.dataset.pool || 'all';
       uiManager.selectedMode = this.mode;
       uiManager.pool = this.pool;
+      const lessonChoice = document.getElementById('lesson-choice'); if (lessonChoice) lessonChoice.hidden = this.pool !== 'lesson';
       document.querySelectorAll('[data-action="select-mode"]').forEach(node => {
         const active = node.dataset.mode === this.mode && (node.dataset.pool || 'all') === this.pool;
         node.classList.toggle('is-selected', active);
@@ -172,13 +173,16 @@ class App {
 
   async startGame() {
     const settings = profileManager.getCurrentProfile().settings || {};
-    let words = vocabManager.getGameWords(Number(settings.sessionSize) || 10, this.pool);
+    const lessonUnit = document.getElementById('lesson-unit')?.value || '';
+    let words = this.pool === 'lesson'
+      ? vocabManager.getAll().filter(word => (String(word.unit || 'General').trim() || 'General') === lessonUnit).sort(() => Math.random() - 0.5).slice(0, Number(settings.sessionSize) || 10)
+      : vocabManager.getGameWords(Number(settings.sessionSize) || 10, this.pool);
     if (this.mode === 'survival' || this.mode === 'practice' || this.mode === 'timed') {
       if (!words.length) { uiManager.showToast('Thêm ít nhất một từ để bắt đầu.', 'error'); await this.navigate('vocabulary'); return; }
     }
     this.destroyGame();
     const configuredLives = Number(settings.lives) || 5;
-    await uiManager.startGame(profileManager.getCurrentProfile(), { remaining: words.length, progress: 0, progressLabel: `${words.length} từ trong lượt`, timeLabel: this.mode === 'timed' ? `${settings.timerDuration || 60}s` : '', score: 0, combo: 0, lives: configuredLives, maxLives: this.mode === 'survival' ? configuredLives : undefined }, { poolLabel: this.pool === 'all' ? 'Kho từ' : this.pool === 'review' ? 'Từ cần ôn' : 'Từ yêu thích', modeLabel: { survival: 'Sinh tồn', timed: `${Number(settings.timerDuration) || 60} giây`, practice: 'Luyện tập' }[this.mode] || 'Sinh tồn', reducedEffects: settings.reducedEffects === true });
+    await uiManager.startGame(profileManager.getCurrentProfile(), { remaining: words.length, progress: 0, progressLabel: `${words.length} từ trong lượt`, timeLabel: this.mode === 'timed' ? `${settings.timerDuration || 60}s` : '', score: 0, combo: 0, lives: configuredLives, maxLives: this.mode === 'survival' ? configuredLives : undefined }, { poolLabel: this.pool === 'lesson' ? lessonUnit : this.pool === 'all' ? 'Kho từ' : this.pool === 'review' ? 'Từ cần ôn' : 'Từ yêu thích', modeLabel: { survival: 'Sinh tồn', timed: `${Number(settings.timerDuration) || 60} giây`, practice: 'Luyện tập' }[this.mode] || 'Sinh tồn', reducedEffects: settings.reducedEffects === true });
     const keyboard = document.querySelector('.virtual-keyboard');
     if (keyboard) keyboard.dataset.size = settings.keyboardSize || 'normal';
     const canvas = document.getElementById('game-canvas');
