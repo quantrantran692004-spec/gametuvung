@@ -1,23 +1,26 @@
 {
   "name": "WORD SHOOTER - Game Học Từ Vựng",
   "short_name": "WordShooter",
-  "description": "Game học từ vựng tiếng Anh bắn chữ phong cách Cyberpunk Neon",
-  "start_url": "./index.html",
+  "description": "Luyện phản xạ tiếng Anh: nghe từ, gõ đáp án và bắn trúng mục tiêu.",
+  "start_url": "./",
   "display": "standalone",
-  "background_color": "#f4f7fb",
-  "theme_color": "#3867e8",
+  "background_color": "#050817",
+  "theme_color": "#050817",
   "orientation": "any",
   "icons": [
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' fill='%230a0a1a'/%3E%3Cpolygon points='96,20 170,160 96,130 22,160' fill='none' stroke='%2300ffff' stroke-width='10'/%3E%3Ccircle cx='96' cy='95' r='20' fill='%23ff007f'/%3E%3C/svg%3E",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' fill='%23080d0f'/%3E%3Cpath d='M96 20 166 154H26Z' fill='none' stroke='%23ff5a43' stroke-width='10'/%3E%3Ccircle cx='96' cy='116' r='19' fill='%2389d8c6'/%3E%3C/svg%3E",
       "sizes": "192x192",
       "type": "image/svg+xml"
     },
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%230a0a1a'/%3E%3Cpolygon points='256,50 460,420 256,340 52,420' fill='none' stroke='%2300ffff' stroke-width='25'/%3E%3Ccircle cx='256' cy='250' r='50' fill='%23ff007f'/%3E%3C/svg%3E",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%23080d0f'/%3E%3Cpath d='M256 52 442 414H70Z' fill='none' stroke='%23ff5a43' stroke-width='26'/%3E%3Ccircle cx='256' cy='308' r='51' fill='%2389d8c6'/%3E%3C/svg%3E",
       "sizes": "512x512",
       "type": "image/svg+xml"
     }
   ],
   "categories": ["education", "games"]
 }
+
+
+

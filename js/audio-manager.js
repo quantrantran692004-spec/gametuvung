@@ -1,4 +1,9 @@
-// Procedural Audio Engine via Web Audio API + SpeechSynthesis
+import { Howl } from 'howler';
+import laserSfx from '../assets/audio/laser.wav';
+import impactSfx from '../assets/audio/impact.wav';
+import missSfx from '../assets/audio/miss.wav';
+
+// Howler effects + SpeechSynthesis pronunciation.
 class AudioManager {
   constructor() {
     this.ctx = null;
@@ -6,6 +11,11 @@ class AudioManager {
     this.voiceEnabled = true;
     this.voiceName = '';
     this.voiceRate = 0.68;
+    this.effects = {
+      laser: new Howl({ src: [laserSfx], volume: 0.3, preload: true }),
+      impact: new Howl({ src: [impactSfx], volume: 0.36, preload: true }),
+      miss: new Howl({ src: [missSfx], volume: 0.2, preload: true })
+    };
     this.voices = [];
     this.voicesReady = false;
     if (typeof window !== 'undefined' && window.speechSynthesis) {
@@ -48,47 +58,17 @@ class AudioManager {
 
   playLaser() {
     if (!this.soundEnabled) return;
-    this.init();
-    if (!this.ctx) return;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(880, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(110, this.ctx.currentTime + 0.15);
-    gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
-    osc.connect(gain); gain.connect(this.ctx.destination);
-    osc.start(); osc.stop(this.ctx.currentTime + 0.15);
+    this.effects.laser.play();
   }
 
   playExplosion() {
     if (!this.soundEnabled) return;
-    this.init();
-    if (!this.ctx) return;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'square';
-    osc.frequency.setValueAtTime(150, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(30, this.ctx.currentTime + 0.3);
-    gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
-    osc.connect(gain); gain.connect(this.ctx.destination);
-    osc.start(); osc.stop(this.ctx.currentTime + 0.3);
+    this.effects.impact.play();
   }
 
   playMiss() {
     if (!this.soundEnabled) return;
-    this.init();
-    if (!this.ctx) return;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(220, this.ctx.currentTime);
-    osc.frequency.setValueAtTime(180, this.ctx.currentTime + 0.1);
-    gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
-    osc.connect(gain); gain.connect(this.ctx.destination);
-    osc.start(); osc.stop(this.ctx.currentTime + 0.2);
+    this.effects.miss.play();
   }
 
   speak(text, lang = 'en-US') {

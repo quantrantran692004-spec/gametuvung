@@ -1,7 +1,8 @@
-const CACHE_NAME = 'word-shooter-v21';
+const CACHE_NAME = 'word-shooter-v31';
 const ASSETS = [
   './', './index.html', './manifest.json',
-  './css/main.css', './css/game.css',
+  './css/main.css', './css/game.css', './css/cosmic-game.css', './css/lobby-home.css',
+  './assets/cosmic-arena.png', './assets/player-starfighter.png', './assets/lobby-cosmos.png',
   './js/app.js', './js/db.js', './js/profile-manager.js', './js/vocab-manager.js',
   './js/game-engine.js', './js/ui-manager.js', './js/audio-manager.js',
   './js/answer-checker.js', './js/stats-manager.js', './js/importer.js',
@@ -61,3 +62,5 @@ self.addEventListener('fetch', (event) => {
       .catch(() => undefined)
   );
 });
+
+

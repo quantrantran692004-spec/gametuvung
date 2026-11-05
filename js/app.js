@@ -1,622 +1,250 @@
-import { db } from './db.js?v=18';
-import { profileManager } from './profile-manager.js?v=18';
-import { vocabManager } from './vocab-manager.js?v=18';
-import { statsManager } from './stats-manager.js?v=18';
-import { uiManager } from './ui-manager.js?v=18';
-import { GameEngine } from './game-engine.js?v=18';
-import { t, setLanguage } from './i18n.js?v=18';
-import { FileImporter } from './importer.js?v=18';
-import { DocExporter } from './doc-exporter.js?v=18';
-import { SpacedRepetition } from './spaced-repetition.js?v=18';
-import { getPracticeSentences } from './sentence-manager.js?v=18';
-import { audioManager } from './audio-manager.js?v=18';
+import { db } from './db.js?v=31';
+import { profileManager } from './profile-manager.js?v=31';
+import { vocabManager } from './vocab-manager.js?v=31';
+import { statsManager } from './stats-manager.js?v=31';
+import { uiManager } from './ui-manager.js?v=31';
+import { GameEngine } from './game-engine.js?v=31';
+import { FileImporter } from './importer.js?v=31';
+import { SpacedRepetition } from './spaced-repetition.js?v=31';
+import { audioManager } from './audio-manager.js?v=31';
 
 class App {
-  constructor() {
-    this.game = null;
-    this.pendingGame = null;
-  }
+  constructor() { this.game = null; this.mode = 'survival'; this.pool = 'all'; this.startedAt = 0; }
 
   async init() {
     try {
-      // 1. Initialize IndexedDB
       await db.init();
-
-      // 2. Initialize Profiles
-      const currentProfile = await profileManager.init();
-      audioManager.soundEnabled = currentProfile.settings?.soundEnabled === true;
-      audioManager.voiceEnabled = currentProfile.settings?.voiceEnabled === true;
-      audioManager.setVoice(currentProfile.settings?.voiceName || '', currentProfile.settings?.voiceRate || 0.68);
-
-      // 3. Initialize Vocabulary
+      const profile = await profileManager.init();
       await vocabManager.init();
-
-      // 4. Register Service Worker for PWA
-      if ('serviceWorker' in navigator) {
-        try {
-          const registration = await navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' });
-          registration.update().catch(() => {});
-          if (registration.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-          navigator.serviceWorker.addEventListener('controllerchange', () => {
-            const refreshKey = 'ws-sw-refreshed-v12';
-            if (!sessionStorage.getItem(refreshKey)) {
-              sessionStorage.setItem(refreshKey, '1');
-              window.location.reload();
-            }
-          });
-        } catch (err) {
-          console.log('ServiceWorker registration error:', err);
-        }
-      }
-
-      // 5. Setup Event Listeners
-      this.setupNavigation();
-      this.setupGameControls();
-      this.setupVocabActions();
-      this.setupSettingsActions();
-      this.setupProfileActions();
-
-      // 6. Init UI
-      uiManager.updateProfileBadge();
-      uiManager.showScreen('screen-main-menu');
-      if (db.usingFallback) {
-        uiManager.showToast('Thiết bị đang chặn IndexedDB; game vẫn chơi được nhưng dữ liệu chỉ giữ trong phiên này.', 'info');
-      }
-
-    } catch (err) {
-      console.error('Fatal initialization error:', err);
-      alert('Không thể khởi chạy cơ sở dữ liệu cục bộ. Vui lòng thử lại!');
+      this.applyAudioSettings(profile.settings || {});
+      this.bindEvents();
+      await this.navigate('home');
+      if (db.usingFallback) uiManager.showToast('Lưu trữ tạm thời không giữ dữ liệu sau khi đóng trang.', 'info');
+    } catch (error) {
+      console.error('Khởi chạy thất bại:', error);
+      uiManager.showToast('Không mở được dữ liệu trên thiết bị. Tải lại trang để thử lại.', 'error');
     }
   }
 
-  setupNavigation() {
-    // Menu buttons
-    const modeSelect = document.getElementById('game-mode-select');
-    const modeHelp = document.getElementById('mode-help');
-    const modeDescriptions = {
-      survival: 'Bắn từ: nhìn nghĩa tiếng Việt, gõ từ tiếng Anh; sai bị trừ điểm và mất combo.',
-      practice: 'Luyện tập tự do: tốc độ nhẹ, tập trung vào việc nhớ từ và phản xạ.',
-      timed: 'Tính giờ: ghi điểm nhiều nhất trong thời gian đã chọn ở Cài đặt.',
-      unit: 'Theo Unit: chơi các từ thuộc bài học/Unit đã chọn trong kho từ.',
-      missed: 'Ôn từ sai: ưu tiên những từ bạn đã trả lời sai hoặc thường quên.',
-      favorites: 'Từ yêu thích: chỉ chơi các từ bạn đã đánh dấu yêu thích.',
-      srs: 'Ôn thông minh: ưu tiên các từ đã đến lịch ôn lặp lại ngắt quãng.',
-      two_players: 'Hai người: luân phiên trên cùng thiết bị; mỗi người có lượt riêng.',
-      high_score: 'Điểm cao: tốc độ tăng dần, thử phá kỷ lục của chính bạn.',
-      dictation: 'Nghe chép chính tả: nghe câu tiếng Anh, gõ đủ cả câu để tự động bắn.'
-    };
-    const updateModeHelp = () => {
-      if (modeHelp && modeSelect) modeHelp.textContent = modeDescriptions[modeSelect.value] || modeDescriptions.survival;
-    };
-    modeSelect?.addEventListener('change', updateModeHelp);
-    updateModeHelp();
+  applyAudioSettings(settings) {
+    audioManager.soundEnabled = settings.soundEnabled !== false;
+    audioManager.voiceEnabled = settings.voiceEnabled === true;
+    audioManager.setVoice(settings.voiceName || '', settings.voiceRate ?? 0.72);
+  }
 
-    document.getElementById('btn-to-game')?.addEventListener('click', () => {
-      this.prepareGame();
+  bindEvents() {
+    document.addEventListener('click', event => this.handleClick(event));
+    document.addEventListener('submit', event => this.handleSubmit(event));
+    document.addEventListener('input', event => this.handleInput(event));
+    document.addEventListener('change', event => this.handleChange(event));
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && this.game?.isRunning) this.pauseGame();
+      if (event.key === 'Tab' && this.game?.isRunning && !this.game.isPaused) {
+        event.preventDefault(); this.showHint();
+      }
     });
+  }
 
-    document.getElementById('btn-begin-round')?.addEventListener('click', () => {
-      this.startNewGame();
+  async snapshot() {
+    const profile = profileManager.getCurrentProfile();
+    const words = vocabManager.getAll();
+    const stats = await statsManager.getProfileStats(profile.id);
+    const sessions = stats.recentSessions || [];
+    const today = new Date().toDateString();
+    const todayWords = sessions.filter(item => new Date(item.playedAt).toDateString() === today).reduce((sum, item) => sum + (item.wordsShot || 0), 0);
+    const masteryCounts = Array.from({ length: 6 }, (_, level) => words.filter(word => Math.min(5, Number(word.masteryLevel) || 0) === level).length);
+    const visibleWords = words.filter(word => {
+      const query = uiManager.libraryQuery.trim().toLowerCase();
+      const matchesQuery = !query || [word.english, word.vietnamese, word.unit].some(value => String(value || '').toLowerCase().includes(query));
+      const matchesFilter = uiManager.libraryFilter === 'all' || (uiManager.libraryFilter === 'favorites' ? word.isFavorite : word.needsReview || SpacedRepetition.getDueWords([word]).length > 0);
+      return matchesQuery && matchesFilter;
     });
+    return { profile, profiles: profileManager.profiles, settings: profile.settings || {}, words, visibleWords, stats, dueWords: SpacedRepetition.getDueWords(words), todayWords, masteryCounts };
+  }
 
-    document.getElementById('btn-ready-back')?.addEventListener('click', () => {
-      this.pendingGame = null;
-      uiManager.showScreen('screen-main-menu');
-    });
+  async navigate(route) {
+    const state = await this.snapshot();
+    uiManager.showRoute(route, state);
+    if (route === 'vocabulary') document.querySelector('#library-search')?.focus({ preventScroll: true });
+  }
 
-    document.getElementById('btn-to-vocab')?.addEventListener('click', () => {
-      uiManager.renderVocabList();
-      uiManager.showScreen('screen-vocab');
-    });
-
-    document.getElementById('btn-to-stats')?.addEventListener('click', () => {
-      uiManager.renderStats();
-      uiManager.showScreen('screen-stats');
-    });
-
-    document.getElementById('btn-to-settings')?.addEventListener('click', () => {
-      this.populateSettingsForm();
-      uiManager.showScreen('screen-settings');
-    });
-
-    document.getElementById('nav-profile-btn')?.addEventListener('click', () => {
-      uiManager.renderProfiles();
-      uiManager.showScreen('screen-profiles');
-    });
-
-    // Back to Menu buttons
-    document.querySelectorAll('.btn-back-menu').forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (this.game && this.game.isRunning) {
-          this.game.endGame('aborted');
-        }
-        uiManager.showScreen('screen-main-menu');
+  async handleClick(event) {
+    const routeButton = event.target.closest('[data-route]');
+    if (routeButton) { event.preventDefault(); await this.navigate(routeButton.dataset.route); return; }
+    const button = event.target.closest('[data-action]');
+    if (!button) return;
+    const action = button.dataset.action;
+    if (action === 'toggle-menu') {
+      document.body.classList.toggle('menu-open');
+      button.setAttribute('aria-expanded', document.body.classList.contains('menu-open'));
+    } else if (action === 'select-mode') {
+      this.mode = button.dataset.mode;
+      this.pool = button.dataset.pool || 'all';
+      uiManager.selectedMode = this.mode;
+      uiManager.pool = this.pool;
+      document.querySelectorAll('[data-action="select-mode"]').forEach(node => {
+        const active = node.dataset.mode === this.mode && (node.dataset.pool || 'all') === this.pool;
+        node.classList.toggle('is-selected', active);
+        node.setAttribute('aria-pressed', String(active));
       });
-    });
+    } else if (action === 'start-game') this.startGame();
+    else if (action === 'pause-game') this.pauseGame();
+    else if (action === 'resume-game') { this.game?.resume(); document.getElementById('game-overlay').hidden = true; document.getElementById('game-input')?.focus({ preventScroll: true }); }
+    else if (action === 'quit-game') this.finishEarly();
+    else if (action === 'exit-game') { this.destroyGame(); await this.navigate('home'); }
+    else if (action === 'replay-game') { this.destroyGame(); this.startGame(); }
+    else if (action === 'virtual-key') this.pressVirtualKey(button.dataset.key);
+    else if (action === 'game-hint') this.showHint();
+    else if (action === 'replay-word') { const target = this.game?.activeWords?.find(item => item.id === this.game.selectedTargetId) || this.game?.activeWords?.find(item => !item.isHit); if (target) audioManager.speak(target.target, 'en-US'); }
+    else if (action === 'go-vocabulary') await this.navigate('vocabulary');
+    else if (action === 'add-word') this.openWordDialog();
+    else if (action === 'close-dialog') button.closest('dialog')?.close();
+    else if (action === 'import-words') document.getElementById('file-import-input')?.click();
+    else if (action === 'export-words') this.exportWords();
+    else if (action === 'toggle-favorite') await this.toggleFavorite(button.dataset.wordId);
+    else if (action === 'delete-word') await this.deleteWord(button.dataset.wordId);
+    else if (action === 'open-profiles') document.getElementById('profile-dialog')?.showModal();
+    else if (action === 'switch-profile') await this.switchProfile(button.dataset.profileId);
+    else if (action === 'test-voice') { audioManager.voiceEnabled = true; audioManager.speak('Ready. Type the word before it falls.', 'en-US'); }
   }
 
-  startNewGame() {
-    if (this.game) {
-      this.game.destroy?.();
-      this.game = null;
-    }
-
-    const profile = profileManager.getCurrentProfile();
-    const settings = profile.settings || {};
-
-    const canvas = document.getElementById('game-canvas');
-    const input = document.getElementById('game-input');
-    
-    // Choose mode
-    const modeSelect = document.getElementById('game-mode-select');
-    const pendingGame = this.pendingGame;
-    const selectedMode = pendingGame?.mode || (modeSelect ? modeSelect.value : 'survival');
-    const allWords = vocabManager.getAll();
-
-    if (selectedMode !== 'dictation' && allWords.length === 0) {
-      uiManager.showToast('Chưa có từ vựng. Hãy thêm ít nhất một từ trước khi chơi.', 'error');
-      uiManager.showScreen('screen-vocab');
-      return;
-    }
-
-    // Game Engine instance
-    this.game = new GameEngine(canvas, {
-      lives: settings.lives || 5,
-      speed: settings.speed || 'normal',
-      duration: settings.timerDuration || 60,
-      wordDirection: settings.wordDirection || 'en-vi',
-      voiceEnabled: settings.voiceEnabled === true,
-      autoSpeak: settings.voiceEnabled === true,
-      missPenalty: 25,
-      caseSensitive: settings.caseSensitive || false,
-      acceptTypos: settings.acceptTypos !== false,
-      onHudUpdate: (hud) => {
-        if (hud.score !== undefined) document.getElementById('hud-score').textContent = hud.score;
-        if (hud.lives !== undefined) {
-          const heartsContainer = document.getElementById('hud-lives-container');
-          if (heartsContainer) {
-            const maxLives = settings.lives || 5;
-            heartsContainer.innerHTML = Array.from({ length: maxLives }).map((_, i) => 
-              `<span class="heart-icon ${i >= hud.lives ? 'heart-lost' : ''}">♥</span>`
-            ).join('');
-          }
-        }
-        if (hud.combo !== undefined) {
-          document.getElementById('hud-combo-val').textContent = hud.combo;
-          const bar = document.getElementById('hud-combo-bar');
-          if (bar) bar.style.width = Math.min(hud.combo * 10, 100) + '%';
-        }
-        if (hud.time !== undefined) {
-          document.getElementById('hud-time-val').textContent = hud.time + 's';
-        }
-        if (hud.weapon !== undefined) {
-          const weapon = document.getElementById('hud-weapon-val');
-          if (weapon) weapon.textContent = hud.weapon;
-        }
-      },
-      onAnswerFeedback: ({ correct, penalty, autoMiss, upgraded, weapon }) => {
-        const arena = document.querySelector('.game-container');
-        arena?.classList.remove('feedback-correct', 'feedback-wrong');
-        void arena?.offsetWidth;
-        arena?.classList.add(correct ? 'feedback-correct' : 'feedback-wrong');
-        if (correct) {
-          uiManager.showToast(upgraded ? `NÂNG CẤP! Vũ khí: ${weapon}` : 'ĐÚNG! Mục tiêu đã bị bắn.', 'success');
-        }
-      },
-      onGameOver: async (result) => {
-        // Save session stats
-        await statsManager.saveSession({
-          profileId: profile.id,
-          mode: selectedMode,
-          score: result.score,
-          wordsShot: result.wordsShot,
-          missedWords: result.missedWords,
-          accuracy: result.accuracy,
-          highestCombo: result.highestCombo,
-          duration: result.duration
-        });
-
-        // Show Game Over Overlay
-        document.getElementById('res-score').textContent = result.score;
-        document.getElementById('res-words').textContent = result.wordsShot;
-        document.getElementById('res-accuracy').textContent = result.accuracy + '%';
-        document.getElementById('res-combo').textContent = result.highestCombo;
-        document.getElementById('game-overlay-result').classList.add('active');
-      }
-    });
-
-    // Hide overlay
-    document.getElementById('game-overlay-result').classList.remove('active');
-    
-    // Switch Screen
-    uiManager.showScreen('screen-game');
-    
-    // Resize canvas to match screen after display block
-    setTimeout(() => {
-      this.game.resizeCanvas();
-    }, 50);
-
-    // Không focus input: trên điện thoại chỉ dùng bàn phím ảo của game.
-    setTimeout(() => {
-      input.value = '';
-    }, 150);
-
-    // Get vocab words based on mode (Section 5)
-    let gameWords = pendingGame?.words || [];
-
-    if (gameWords.length === 0 && selectedMode === 'srs') {
-      const dueWords = SpacedRepetition.getDueWords(allWords);
-      gameWords = dueWords.length >= 5 ? dueWords : vocabManager.getGameWords(30);
-    } else if (gameWords.length === 0 && selectedMode === 'favorites') {
-      const favs = allWords.filter(w => w.isFavorite);
-      gameWords = favs.length > 0 ? favs : vocabManager.getGameWords(30);
-    } else if (gameWords.length === 0 && selectedMode === 'missed') {
-      const missed = allWords.filter(w => w.needsReview || (w.incorrectCount && w.incorrectCount > 0));
-      gameWords = missed.length > 0 ? missed : vocabManager.getGameWords(30);
-    } else if (gameWords.length === 0 && selectedMode === 'dictation') {
-      gameWords = getPracticeSentences(10);
-    } else if (gameWords.length === 0 && selectedMode !== 'dictation') {
-      gameWords = vocabManager.getGameWords(30);
-    }
-
-    this.pendingGame = null;
-
-    // Pass custom effects config to engine
-    this.game.effectsConfig = {
-      neon: settings.effectNeon !== false,
-      laser: settings.effectLaser !== false,
-      particles: settings.effectParticles !== false,
-      shake: settings.effectShake !== false
-    };
-
-    this.game.start(gameWords, selectedMode);
-  }
-
-  prepareGame() {
-    const profile = profileManager.getCurrentProfile();
-    const modeSelect = document.getElementById('game-mode-select');
-    const mode = modeSelect ? modeSelect.value : 'survival';
-    const allWords = vocabManager.getAll();
-
-    if (mode !== 'dictation' && allWords.length === 0) {
-      uiManager.showToast('Chưa có từ vựng để tạo đề.', 'error');
-      uiManager.showScreen('screen-vocab');
-      return;
-    }
-
-    const dictation = mode === 'dictation';
-    const words = dictation ? getPracticeSentences(10) : vocabManager.getGameWords(30);
-    const item = words[0];
-    const direction = profile.settings?.wordDirection || 'en-vi';
-    const prompt = dictation
-      ? 'NGHE CÂU TIẾNG ANH RỒI GÕ LẠI'
-      : (direction === 'en-vi' ? item.vietnamese : item.english);
-    const answer = dictation ? item.english : (direction === 'en-vi' ? item.english : item.vietnamese);
-    const mask = dictation
-      ? '•'.repeat(Math.min(answer.length, 42))
-      : (answer.length > 1 ? `${answer[0]}${'.'.repeat(answer.length - 1)}` : answer);
-
-    this.pendingGame = { mode, words };
-    const modeTitles = {
-      dictation: 'NGHE CÂU & CHÉP CHÍNH TẢ',
-      survival: 'BẮN TỪ VỰNG · SINH TỒN',
-      practice: 'BẮN TỪ VỰNG · LUYỆN TẬP',
-      timed: 'BẮN TỪ VỰNG · TÍNH GIỜ'
-    };
-    document.querySelector('#screen-ready .ready-card > h2').textContent = modeTitles[mode] || 'SẴN SÀNG VÀO CHƠI';
-    document.getElementById('ready-prompt').textContent = prompt;
-    document.getElementById('ready-mask').textContent = mask;
-    uiManager.showScreen('screen-ready');
-  }
-
-  setupGameControls() {
-    const input = document.getElementById('game-input');
-    const fireBtn = document.getElementById('game-fire-btn');
-    const speakBtn = document.getElementById('game-speak-btn');
-
-    speakBtn?.addEventListener('click', () => {
-      this.game?.speakActiveTarget();
-    });
-
-    // Realtime typing check (Parroto Chép Chính Tả Style)
-    input?.addEventListener('input', () => {
-      if (!this.game) return;
-      const text = input.value;
-      const hit = this.game.updateTypingProgress(text);
-      if (hit) {
-        input.value = ''; // Auto clear when word is shot!
-      }
-    });
-
-    const handleFire = () => {
-      if (!this.game || !input) return;
-      const text = input.value;
-      if (text.trim()) {
-        const hit = this.game.submitAnswer(text);
-        if (hit) {
-          input.value = '';
-        } else {
-          // Visual shake on input
-          input.style.borderColor = 'var(--color-neon-pink)';
-          input.value = '';
-          setTimeout(() => input.style.borderColor = 'var(--color-neon-cyan)', 300);
-        }
-      }
-    };
-
-    input?.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        handleFire();
-      }
-    });
-
-    // Global keyboard listener for PC (gõ trực tiếp bất cứ lúc nào trên máy tính)
-    window.addEventListener('keydown', (e) => {
-      // Chỉ kích hoạt khi đang ở màn hình game và không mở modal
-      if (uiManager.currentScreen !== 'screen-game' || !this.game || !this.game.isRunning) return;
-      if (e.target && e.target.tagName === 'INPUT') return; // Đã có input listener xử lý
-
-      // Bắt phím chữ cái a-z, space, backspace
-      if (/^[a-zA-Z0-9]$/.test(e.key) || e.key === ' ' || e.key === 'Backspace') {
-        if (!input) return;
-        if (e.key === 'Backspace') {
-          input.value = input.value.slice(0, -1);
-        } else {
-          input.value += e.key;
-        }
-        const hit = this.game.updateTypingProgress(input.value);
-        if (hit) input.value = '';
-      }
-    });
-
-    // Virtual Keyboard buttons (Dành cho điện thoại / máy tính bảng cảm ứng)
-    document.querySelectorAll('.vk-key').forEach(btn => {
-      btn.addEventListener('pointerdown', (e) => {
-        e.preventDefault();
-        if (!this.game || !this.game.isRunning || !input) return;
-
-        const key = btn.getAttribute('data-key');
-        if (key === 'backspace') {
-          input.value = input.value.slice(0, -1);
-        } else if (key === 'space') {
-          input.value += ' ';
-        } else if (key) {
-          input.value += key;
-        }
-
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-      });
-    });
-
-    // Result buttons
-    document.getElementById('btn-play-again')?.addEventListener('click', () => {
-      document.getElementById('game-overlay-result').classList.remove('active');
-      this.startNewGame();
-    });
-
-    document.getElementById('btn-result-menu')?.addEventListener('click', () => {
-      document.getElementById('game-overlay-result').classList.remove('active');
-      uiManager.showScreen('screen-main-menu');
-    });
-  }
-
-  setupVocabActions() {
-    // Add Word Modal
-    const modal = document.getElementById('modal-add-word');
-    document.getElementById('btn-open-add-word')?.addEventListener('click', () => {
-      modal.classList.add('active');
-    });
-
-    document.getElementById('btn-cancel-add-word')?.addEventListener('click', () => {
-      modal.classList.remove('active');
-    });
-
-    document.getElementById('form-add-word')?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const en = document.getElementById('input-word-en').value;
-      const vi = document.getElementById('input-word-vi').value;
-      const ipa = document.getElementById('input-word-ipa').value;
-      const unit = document.getElementById('input-word-unit').value;
-
-      if (en && vi) {
-        await vocabManager.addWord({ english: en, vietnamese: vi, ipa, unit });
-        uiManager.renderVocabList();
-        uiManager.showToast('Đã thêm từ mới!', 'success');
-        modal.classList.remove('active');
-        e.target.reset();
-      }
-    });
-
-    // Search filter
-    document.getElementById('vocab-search-input')?.addEventListener('input', (e) => {
-      const q = e.target.value;
-      uiManager.renderVocabList(q);
-    });
-
-    // File Import Button
-    const fileInput = document.getElementById('file-import-input');
-    document.getElementById('btn-open-import')?.addEventListener('click', () => {
-      fileInput.click();
-    });
-
-    fileInput?.addEventListener('change', async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      try {
-        const ext = file.name.split('.').pop().toLowerCase();
-        let parsed = [];
-
-        if (ext === 'csv') {
-          const text = await file.text();
-          parsed = FileImporter.parseCSV(text);
-        } else if (ext === 'txt') {
-          const text = await file.text();
-          parsed = FileImporter.parseTXT(text);
-        } else if (ext === 'xlsx' || ext === 'xls') {
-          const buffer = await file.arrayBuffer();
-          parsed = FileImporter.parseExcel(buffer);
-        } else {
-          alert('Định dạng tệp không được hỗ trợ. Hãy chọn .txt, .csv, hoặc .xlsx!');
-          return;
-        }
-
-        if (parsed.length > 0) {
-          if (confirm(`Tìm thấy ${parsed.length} từ vựng từ tệp "${file.name}". Bạn có muốn nhập vào hệ thống?`)) {
-            await vocabManager.addMultipleWords(parsed);
-            uiManager.renderVocabList();
-            uiManager.showToast(`Đã nhập thành công ${parsed.length} từ vựng!`, 'success');
-          }
-        } else {
-          uiManager.showToast('Không trích xuất được từ nào từ tệp!', 'error');
-        }
-      } catch (err) {
-        console.error('Import error:', err);
-        uiManager.showToast('Lỗi khi đọc file: ' + err.message, 'error');
-      } finally {
-        fileInput.value = '';
-      }
-    });
-
-    // Export Word .docx
-    document.getElementById('btn-export-word')?.addEventListener('click', async () => {
-      const words = vocabManager.getAll();
-      if (words.length === 0) {
-        uiManager.showToast('Không có từ vựng để xuất tài liệu!', 'error');
-        return;
-      }
-      try {
-        uiManager.showToast('Đang tạo tài liệu Word...', 'info');
-        await DocExporter.exportWord(words);
-        uiManager.showToast('Tạo tài liệu Word thành công!', 'success');
-      } catch (err) {
-        console.error('Export Word error:', err);
-        uiManager.showToast('Lỗi khi tạo file Word: ' + err.message, 'error');
-      }
-    });
-
-    // Export CSV
-    document.getElementById('btn-export-csv')?.addEventListener('click', () => {
-      const words = vocabManager.getAll();
-      DocExporter.exportCSV(words);
-      uiManager.showToast('Đã xuất file CSV!', 'success');
-    });
-
-    // Export JSON Backup
-    document.getElementById('btn-export-json')?.addEventListener('click', () => {
-      const words = vocabManager.getAll();
-      DocExporter.exportJSON(words);
-      uiManager.showToast('Đã tải bản sao lưu JSON!', 'success');
-    });
-  }
-
-  populateSettingsForm() {
-    const profile = profileManager.getCurrentProfile();
-    const s = profile.settings || {};
-
-    const setVal = (id, val) => {
-      const el = document.getElementById(id);
-      if (el) el.value = val;
-    };
-
-    const setChecked = (id, val) => {
-      const el = document.getElementById(id);
-      if (el) el.checked = !!val;
-    };
-
-    setVal('setting-lang', s.language || 'vi');
-    setVal('setting-perf', s.perfProfile || 'balanced');
-    setVal('setting-direction', s.wordDirection || 'en-vi');
-    setVal('setting-speed', s.speed || 'normal');
-    setVal('setting-lives', s.lives || 5);
-    setVal('setting-timer', s.timerDuration || 60);
-    setVal('setting-strictness', s.strictness || 'lenient');
-    setChecked('effect-neon', s.effectNeon !== false);
-    setChecked('effect-laser', s.effectLaser !== false);
-    setChecked('effect-particles', s.effectParticles !== false);
-    setChecked('effect-shake', s.effectShake !== false);
-    setChecked('setting-voice', s.voiceEnabled !== false);
-    setChecked('setting-sound', s.soundEnabled !== false);
-    setVal('setting-voice-rate', s.voiceRate || 0.68);
-    audioManager.setVoice(s.voiceName || '', s.voiceRate || 0.68);
-    this.populateVoiceOptions(s.voiceName || '');
-  }
-
-  populateVoiceOptions(selectedName = '') {
-    const select = document.getElementById('setting-voice-name');
-    if (!select) return;
-    const voices = audioManager.getEnglishVoices();
-    const current = selectedName || select.value;
-    select.innerHTML = '<option value="">Tự động chọn giọng rõ nhất</option>';
-    voices.forEach(voice => {
-      const option = document.createElement('option');
-      option.value = voice.name;
-      option.textContent = `${voice.name} (${voice.lang})`;
-      select.appendChild(option);
-    });
-    select.value = current;
-  }
-
-  setupSettingsActions() {
-    document.getElementById('form-settings')?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const newSettings = {
-        language: document.getElementById('setting-lang').value,
-        perfProfile: document.getElementById('setting-perf').value,
-        wordDirection: document.getElementById('setting-direction').value,
-        speed: document.getElementById('setting-speed').value,
-        lives: parseInt(document.getElementById('setting-lives').value, 10) || 5,
-        timerDuration: parseInt(document.getElementById('setting-timer').value, 10) || 60,
-        strictness: document.getElementById('setting-strictness').value,
-        effectNeon: document.getElementById('effect-neon').checked,
-        effectLaser: document.getElementById('effect-laser').checked,
-        effectParticles: document.getElementById('effect-particles').checked,
-        effectShake: document.getElementById('effect-shake').checked,
-        voiceEnabled: document.getElementById('setting-voice').checked,
-        voiceName: document.getElementById('setting-voice-name').value,
-        voiceRate: Number(document.getElementById('setting-voice-rate').value) || 0.68,
-        soundEnabled: document.getElementById('setting-sound').checked
-      };
-
-      await profileManager.updateSettings(newSettings);
-      audioManager.soundEnabled = newSettings.soundEnabled;
-      audioManager.voiceEnabled = newSettings.voiceEnabled;
-      audioManager.setVoice(newSettings.voiceName, newSettings.voiceRate);
-      setLanguage(newSettings.language);
-
-      // Apply performance class to body
-      document.body.className = `perf-${newSettings.perfProfile}`;
-
-      uiManager.showToast('Đã lưu cài đặt chi tiết!', 'success');
-    });
-    document.getElementById('btn-test-voice')?.addEventListener('pointerdown', (event) => {
+  async handleSubmit(event) {
+    const form = event.target;
+    if (form.id === 'game-answer-form') {
       event.preventDefault();
-      const name = document.getElementById('setting-voice-name')?.value || '';
-      const rate = Number(document.getElementById('setting-voice-rate')?.value) || 0.68;
-      audioManager.setVoice(name, rate);
-      audioManager.voiceEnabled = true;
-      audioManager.speak('This is a clear English voice test.', 'en-US');
-    });
+      const input = document.getElementById('game-input');
+      const submitted = input?.value.trim();
+      if (submitted && this.game?.isRunning) {
+        const hit = this.game.submitAnswer(submitted);
+        if (!hit) uiManager.setGameFeedback('Chưa đúng — thử lại trước khi từ chạm vạch.', 'wrong');
+        if (input) input.value = '';
+      }
+    } else if (form.id === 'word-form') {
+      event.preventDefault();
+      const values = Object.fromEntries(new FormData(form));
+      await vocabManager.addWord(values); form.reset(); form.closest('dialog').close();
+      uiManager.showToast(`Đã thêm “${values.english}” vào kho từ.`, 'success'); await this.navigate('vocabulary');
+    } else if (form.id === 'profile-form') {
+      event.preventDefault(); const values = new FormData(form);
+      await profileManager.createProfile(values.get('name')); form.reset(); form.closest('dialog').close();
+      this.applyAudioSettings(profileManager.getCurrentProfile().settings || {}); await this.navigate('home');
+    } else if (form.id === 'settings-form') {
+      event.preventDefault(); const values = new FormData(form);
+      const settings = Object.fromEntries(values.entries());
+      ['acceptTypos', 'voiceEnabled', 'soundEnabled', 'reducedEffects'].forEach(key => settings[key] = form.elements[key].checked);
+      ['lives', 'timerDuration', 'sessionSize'].forEach(key => settings[key] = Number(settings[key]));
+      settings.voiceRate = Number(settings.voiceRate);
+      await profileManager.updateSettings(settings); this.applyAudioSettings(profileManager.getCurrentProfile().settings);
+      uiManager.showToast('Đã lưu cài đặt cho hồ sơ này.', 'success'); await this.navigate('settings');
+    }
   }
 
-  setupProfileActions() {
-    document.getElementById('btn-create-profile')?.addEventListener('click', async () => {
-      const name = prompt('Nhập tên hồ sơ mới:');
-      if (name && name.trim()) {
-        const avatars = ['🤖', '⚡', '🛸', '🎯', '👾', '🌟'];
-        const avatar = avatars[Math.floor(Math.random() * avatars.length)];
-        await profileManager.createProfile(name, avatar);
-        uiManager.renderProfiles();
-        uiManager.updateProfileBadge();
-        uiManager.showToast('Tạo hồ sơ thành công!', 'success');
+  handleInput(event) {
+    if (event.target.id === 'game-input' && this.game?.isRunning && !this.game.isPaused) {
+      this.game.updateTypingProgress(event.target.value);
+    } else if (event.target.id === 'library-search') {
+      uiManager.libraryQuery = event.target.value;
+      this.snapshot().then(state => uiManager.renderWordResults(state.visibleWords));
+    }
+  }
+
+  handleChange(event) {
+    if (event.target.id === 'home-pool-select') this.pool = event.target.value;
+    if (event.target.id === 'library-filter') {
+      uiManager.libraryFilter = event.target.value;
+      this.snapshot().then(state => uiManager.renderWordResults(state.visibleWords));
+    }
+    if (event.target.id === 'file-import-input') this.importFile(event.target.files?.[0]);
+  }
+
+  async startGame() {
+    const settings = profileManager.getCurrentProfile().settings || {};
+    let words = vocabManager.getGameWords(Number(settings.sessionSize) || 10, this.pool);
+    if (this.mode === 'survival' || this.mode === 'practice' || this.mode === 'timed') {
+      if (!words.length) { uiManager.showToast('Thêm ít nhất một từ để bắt đầu.', 'error'); await this.navigate('vocabulary'); return; }
+    }
+    this.destroyGame();
+    const configuredLives = Number(settings.lives) || 5;
+    await uiManager.startGame(profileManager.getCurrentProfile(), { remaining: words.length, progress: 0, progressLabel: `${words.length} từ trong lượt`, timeLabel: this.mode === 'timed' ? `${settings.timerDuration || 60}s` : '', score: 0, combo: 0, lives: configuredLives, maxLives: this.mode === 'survival' ? configuredLives : undefined }, { poolLabel: this.pool === 'all' ? 'Kho từ' : this.pool === 'review' ? 'Từ cần ôn' : 'Từ yêu thích', modeLabel: { survival: 'Sinh tồn', timed: '60 giây', practice: 'Luyện tập' }[this.mode] || 'Sinh tồn', reducedEffects: settings.reducedEffects === true });
+    const canvas = document.getElementById('game-canvas');
+    const gameInput = document.getElementById('game-input');
+    if (gameInput) gameInput.readOnly = window.matchMedia('(max-width: 720px)').matches;
+    this.startedAt = Date.now();
+    this.game = new GameEngine(canvas, {
+      lives: Number(settings.lives) || 5, speed: settings.speed || 'normal', duration: Number(settings.timerDuration) || 60,
+      wordDirection: 'en-vi', autoSpeak: settings.voiceEnabled === true, voiceEnabled: settings.voiceEnabled === true,
+      acceptTypos: settings.acceptTypos !== false, caseSensitive: false, missPenalty: 15,
+      reducedEffects: settings.reducedEffects === true,
+      onHudUpdate: hud => this.updateHud(hud, words.length),
+      onAnswerFeedback: feedback => {
+        if (feedback.correct) {
+          const input = document.getElementById('game-input'); if (input) input.value = '';
+          uiManager.setGameFeedback(feedback.upgraded ? 'Trúng đích! Súng đã nâng cấp.' : 'Trúng đích!', 'correct');
+        } else {
+          if (feedback.autoMiss) { const input = document.getElementById('game-input'); if (input) input.value = ''; }
+          uiManager.setGameFeedback('Từ đã chạm vạch — giữ nhịp nhé.', 'wrong');
+        }
+      },
+      onGameOver: async result => {
+        await statsManager.saveSession({ profileId: profileManager.getCurrentProfile().id, mode: this.mode, score: result.score, wordsShot: result.wordsShot, missedWords: result.missedWords, accuracy: result.accuracy, highestCombo: result.highestCombo, duration: result.duration });
+        uiManager.showResults(result);
       }
     });
+    this.game.start(words, this.mode);
+    window.setTimeout(() => document.getElementById('game-input')?.focus({ preventScroll: true }), 60);
+  }
+
+  updateHud(hud, total) {
+    const state = {};
+    if (hud.score !== undefined) state.score = hud.score;
+    if (hud.combo !== undefined) state.combo = hud.combo;
+    if (hud.lives !== undefined) state.lives = hud.lives;
+    if (hud.time !== undefined && this.mode === 'timed') state.timeLabel = `${hud.time}s`;
+    state.progress = Math.min(100, ((this.game?.wordsShot || 0) / Math.max(1, total)) * 100);
+    state.progressLabel = `${this.game?.wordsShot || 0} / ${total} trúng`;
+    state.progressPercent = Math.round(state.progress);
+    uiManager.updateGameHud(state);
+  }
+
+  pauseGame() { if (!this.game?.isRunning) return; this.game.pause(); uiManager.showPause(); }
+  finishEarly() { this.game?.endGame('aborted'); }
+  destroyGame() { this.game?.destroy(); this.game = null; }
+  showHint() { const word = this.game?.activeWords?.find(item => item.id === this.game.selectedTargetId) || this.game?.activeWords?.[0]; if (word) uiManager.setGameFeedback(`Gợi ý: ${word.target.slice(0, 1)}${'·'.repeat(Math.max(1, word.target.length - 1))}`, 'hint'); }
+
+  pressVirtualKey(key) {
+    const input = document.getElementById('game-input');
+    if (!input || !this.game?.isRunning || this.game.isPaused) return;
+    if (key === 'enter') { document.getElementById('game-answer-form')?.requestSubmit(); return; }
+    if (key === 'backspace') input.value = input.value.slice(0, -1);
+    else input.value += key === 'space' ? ' ' : key;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
+  openWordDialog() { const dialog = document.getElementById('word-dialog'); dialog?.showModal(); dialog?.querySelector('[name="english"]')?.focus(); }
+  async toggleFavorite(id) { const word = vocabManager.getAll().find(item => item.id === id); if (!word) return; await vocabManager.updateWord(id, { isFavorite: !word.isFavorite }); await this.navigate('vocabulary'); }
+  async deleteWord(id) { if (!confirm('Xóa từ này khỏi kho?')) return; await vocabManager.deleteWord(id); await this.navigate('vocabulary'); }
+  async switchProfile(id) { this.destroyGame(); await profileManager.switchProfile(id); await vocabManager.init(); this.applyAudioSettings(profileManager.getCurrentProfile().settings || {}); document.getElementById('profile-dialog')?.close(); await this.navigate('home'); }
+
+  exportWords() {
+    const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), vocabulary: vocabManager.getAll() }, null, 2)], { type: 'application/json' });
+    const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'word-shooter-vocabulary.json'; link.click(); URL.revokeObjectURL(link.href);
+  }
+
+  async importFile(file) {
+    if (!file) return;
+    try {
+      let words;
+      if (file.name.toLowerCase().endsWith('.json')) {
+        const parsed = JSON.parse(await file.text()); words = Array.isArray(parsed) ? parsed : parsed.vocabulary;
+      } else if (/\.xlsx?$/i.test(file.name)) words = FileImporter.parseExcel(await file.arrayBuffer());
+      else { const text = await file.text(); words = file.name.toLowerCase().endsWith('.csv') ? FileImporter.parseCSV(text) : FileImporter.parseTXT(text); }
+      const added = await vocabManager.addMultipleWords(words || []);
+      uiManager.showToast(`Đã nhập ${added.length} từ.`, added.length ? 'success' : 'info'); await this.navigate('vocabulary');
+    } catch (error) { uiManager.showToast(`Không đọc được tệp: ${error.message}`, 'error'); }
+    finally { const input = document.getElementById('file-import-input'); if (input) input.value = ''; }
   }
 }
 
-// Instantiate App
-window.addEventListener('DOMContentLoaded', () => {
-  const app = new App();
-  app.init();
-});
+const app = new App();
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => app.init(), { once: true });
+else void app.init();

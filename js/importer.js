@@ -62,7 +62,9 @@ export class FileImporter {
     if (typeof XLSX === 'undefined') {
       throw new Error('Thư viện XLSX chưa sẵn sàng!');
     }
-    const workbook = XLSX.read(data, { type: 'binary' });
+    const workbook = data instanceof ArrayBuffer
+      ? XLSX.read(data, { type: 'array' })
+      : XLSX.read(data, { type: 'binary' });
     const firstSheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[firstSheetName];
     const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });

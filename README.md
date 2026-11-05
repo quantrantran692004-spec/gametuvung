@@ -1,65 +1,40 @@
-# ⚡ WORD SHOOTER — CYBERPUNK VOCABULARY DEFENSE
+# WORD SHOOTER
 
-> Game học từ vựng tiếng Anh bắn chữ phong cách Cyberpunk Neon (PWA Offline-First).  
-> **Repository:** [quantrantran692004-spec/gametuvung](https://github.com/quantrantran692004-spec/gametuvung)
+Game luyện phản xạ từ vựng tiếng Anh theo phong cách space arcade. Người chơi nhìn nghĩa tiếng Việt và từ tiếng Anh đang rơi, nghe phát âm, gõ đáp án rồi bắn phá mục tiêu.
 
----
+## Vòng chơi
 
-## 🎮 Giới thiệu Trò chơi
-**WORD SHOOTER** là ứng dụng web PWA kết hợp việc ghi nhớ từ vựng tiếng Anh với lối chơi bắn chữ tốc độ cao:
-- **Lối chơi bắn chữ:** Các từ vựng/nghĩa xuất hiện và rơi xuống từ phía trên. Người chơi gõ câu trả lời chính xác để pháo laser bắn nổ từ tương ứng.
-- **Phong cách đồ họa:** Cyberpunk Neon, Canvas 2D mượt mà, hiệu ứng nổ hạt sáng (particles) và tia laser rực rỡ.
-- **Local-First & PWA:** Lưu trữ toàn bộ dữ liệu từ vựng, hồ sơ và thành tích offline bằng **IndexedDB**. Có thể cài đặt lên máy tính, Android, iOS.
-- **Âm thanh & Phát âm:** Tích hợp Web Audio API (âm thanh procedural không cần tải file ngoài) và SpeechSynthesis API (phát âm từ vựng tiếng Anh chuẩn giọng).
+1. Từ tiếng Anh hiện đầy đủ trên mục tiêu đang rơi và được đọc thành tiếng.
+2. Người chơi gõ bằng bàn phím máy tính hoặc bàn phím ảo; chữ gõ chỉ xuất hiện trong ô nhập.
+3. Phi thuyền bắn tia năng lượng vào đúng mục tiêu, tạo nổ hạt sáng, điểm và combo.
+4. Từ hụt được đưa vào lượt ôn tiếp theo.
 
----
+Có chế độ luyện tập, ôn từ sai, tính giờ và sinh tồn. Hồ sơ, kho từ và kết quả được lưu trên thiết bị bằng IndexedDB. PWA giữ ứng dụng và asset đồ họa để chơi offline sau lần tải đầu.
 
-## 🚀 Các Tính Năng Đã Triển Khai (Giai Đoạn 1)
-- [x] **Trò chơi cốt lõi (Game Engine):**
-  - Vòng lặp game Canvas 2D 60FPS.
-  - Pháo laser ngắm và bắn trúng từ vựng khi nhập đúng.
-  - Hiệu ứng nổ hạt sáng Neon (Cyberpunk Particle Explosions).
-  - Hệ thống tính điểm, hệ số Combo tăng dần, số mạng (Hearts) và thời gian đếm ngược.
-  - 3 chế độ chơi: **Sinh tồn (Survival)**, **Tính giờ (Timed)**, **Luyện tập (Practice)**.
-  - Hỗ trợ đổi chiều từ: **Tiếng Anh ➔ Tiếng Việt** hoặc **Tiếng Việt ➔ Tiếng Anh**.
-- [x] **Kiểm tra đáp án thông minh (Answer Checker):**
-  - Không phân biệt hoa/thường, tự chuẩn hóa khoảng trắng và dấu câu.
-  - Thuật toán Levenshtein Distance chấp nhận lỗi gõ phím nhỏ (Fuzzy matching).
-- [x] **Quản lý từ vựng (Vocab Manager):**
-  - Lưu trữ qua IndexedDB, dữ liệu tồn tại vĩnh viễn trên máy không sợ mất.
-  - Tích hợp sẵn bộ 15 từ vựng mẫu chủ đề Công nghệ / Cyberpunk.
-  - Thêm từ mới, phân loại Unit/Chủ đề, xem phiên âm IPA.
-  - Xóa mềm (Soft delete) an toàn đưa vào thùng rác.
-- [x] **Hồ sơ người chơi (Profiles):**
-  - Hỗ trợ nhiều người chơi trên cùng một thiết bị.
-  - Hồ sơ khách (Guest) và hồ sơ tùy chỉnh tên + Avatar.
-  - Cài đặt cấu hình riêng cho từng hồ sơ.
-- [x] **Cài đặt & Hiệu năng (Accessibility & Settings):**
-  - 3 chế độ hiệu năng: Low-power (máy yếu), Balanced (cân bằng), Visual Max (hiệu ứng tối đa).
-  - Tùy chỉnh tốc độ rơi, số mạng bắt đầu, bật/tắt âm thanh và giọng đọc phát âm.
-- [x] **PWA & Offline:**
-  - File `manifest.json` chuẩn PWA.
-  - Service Worker `sw.js` cache tài nguyên chạy offline 100%.
+## Công nghệ
 
----
+- React + TypeScript + Vite cho UI và build.
+- PixiJS cho cảnh đấu trường 2D; game logic hiện tại được giữ trong module JavaScript.
+- Tailwind CSS, Motion và GSAP cho lớp giao diện/chuyển động.
+- Howler.js cho hiệu ứng âm thanh; SpeechSynthesis đọc từ vựng.
+- vite-plugin-pwa cho service worker và cache offline.
 
-## 🛠 Hướng Dẫn Chạy & Cài Đặt
+## Chạy cục bộ
 
-### Cách 1: Chơi trực tiếp trên GitHub Pages
-Bật GitHub Pages tại repo Settings -> Pages -> Source: `Deploy from a branch` (nhánh `main`) -> Save.
-
-### Cách 2: Chạy trên máy tính (Local Server)
 ```bash
-# Cài đặt hoặc mở bằng bất kỳ web server tĩnh nào:
-# Dùng Python:
-python -m http.server 8080
-
-# Hoặc dùng Node.js npx:
-npx serve .
+npm ci
+npm run dev
 ```
-Mở trình duyệt truy cập: `http://localhost:8080`
 
----
+## Build và triển khai
 
-## 📜 Giấy Phép
-Dự án được phân phối dưới giấy phép **MIT License**.
+```bash
+npm run build
+npm run preview
+```
+
+Vite tạo website tĩnh trong `dist/`. GitHub Pages cần publish thư mục build `dist` (GitHub Actions hoặc Pages artifact); không phục vụ trực tiếp mã nguồn `src/`.
+
+## Kho từ
+
+Thêm từ trong Kho từ hoặc nhập CSV, TXT, XLSX hay JSON. Có thể xuất JSON để sao lưu. Dữ liệu trên điện thoại không tự đồng bộ với máy tính.

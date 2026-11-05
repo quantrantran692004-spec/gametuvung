@@ -1,4 +1,4 @@
-import { db } from './db.js?v=18';
+import { db } from './db.js?v=31';
 
 export class ProfileManager {
   constructor() {
@@ -19,8 +19,9 @@ export class ProfileManager {
         settings: {
           language: 'vi',
           perfProfile: 'balanced',
+          reducedEffects: false,
           soundEnabled: true,
-          voiceEnabled: false,
+          voiceEnabled: true,
           voiceName: '',
           voiceRate: 0.68,
           wordDirection: 'en-vi',
@@ -33,6 +34,17 @@ export class ProfileManager {
       };
       await db.put('profiles', defaultProfile);
       this.profiles = [defaultProfile];
+    }
+
+    // Earlier releases created every player with speech disabled by default.
+    // Speech is now part of the selected game loop; migrate that old default once.
+    for (const profile of this.profiles) {
+      profile.settings ||= {};
+      if (!profile.settings.voicePreferenceVersion) {
+        profile.settings.voiceEnabled = true;
+        profile.settings.voicePreferenceVersion = 1;
+        await db.put('profiles', profile);
+      }
     }
 
     const savedId = localStorage.getItem('ws_active_profile');

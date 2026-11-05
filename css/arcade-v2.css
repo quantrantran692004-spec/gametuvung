@@ -1,0 +1,93 @@
+/* WORD SHOOTER · compact cabinet skin */
+:root { color-scheme:dark; --ground:#080d0f; --surface:#10191a; --raised:#182425; --line:#28413f; --line-strong:#3b615c; --ink:#eff4ee; --muted:#bac7c0; --faint:#91a59b; --accent:#7bdcb5; --accent-ink:#091510; --accent-soft:#1c3a31; --accent-track:#223734; --good:#7bdcb5; --good-soft:#1c3a31; --bad:#e7715c; --bad-soft:#432a27; --warning:#d9a95b; font-family:'DM Sans',sans-serif; }
+html,body { min-height:100%; background:#080d0f; color:#eff4ee; }
+body { background-image:none; }
+.topbar { position:relative; min-height:54px; padding:0 clamp(12px,3vw,36px); border:0; border-bottom:1px solid #203331; background:#080d0f; }
+.brand { gap:8px; }.brand-mark { width:26px;height:26px;color:#7bdcb5; }.brand strong { color:#eff4ee; font:700 18px 'Barlow Condensed',sans-serif; letter-spacing:.035em; }.brand small { display:none; }
+.topbar-meta { margin-left:auto; }.topbar-sync { font-size:11px; }.topbar-profile { min-height:34px; padding:0 8px; border:0; background:transparent; }
+.arcade-nav { margin-left:20px; gap:3px; }.nav-link { min-height:34px; padding:0 12px; border:0; border-radius:4px; color:#9fb0a8; background:transparent; font-size:12px; }
+.nav-link.is-active,.nav-link:hover { color:#eff4ee; background:#182425; box-shadow:inset 0 -2px #7bdcb5; }
+.app-main,.main-content { min-width:0; }
+.screen { padding:clamp(14px,2.2vw,28px); }
+.home-screen { display:grid; width:min(100%,1120px); gap:0; margin:0 auto; padding:clamp(18px,4vh,40px) 20px 20px; }
+.home-heading { display:flex; align-items:end; justify-content:space-between; margin:0 0 13px; }
+.home-heading .eyebrow,.home-ready { display:none; }
+.home-heading h1 { margin:0; color:#eff4ee; font:600 clamp(24px,2.2vw,30px)/1 'Barlow Condensed',sans-serif; letter-spacing:.01em; }
+.home-layout { display:grid; grid-template-columns:minmax(0,1fr) 240px; min-height:210px; overflow:hidden; border:0; background:#10191a; box-shadow:none; }
+.home-launch-panel { display:flex; align-items:flex-start; justify-content:center; min-height:210px; padding:clamp(20px,3vw,34px); border:0; background:#10191a; }
+.home-launch-panel .mission-code { display:none; }
+.home-launch-panel h2 { margin:0 0 10px; color:#eff4ee; font:600 clamp(32px,4vw,52px)/.95 'Barlow Condensed',sans-serif; letter-spacing:-.02em; }
+.home-launch-panel h2 em { color:#7bdcb5; font-style:normal; }
+.home-launch-panel p { max-width:400px; margin:0 0 16px; color:#c4d0ca; font-size:14px; line-height:1.45; }
+.launch-button { min-height:44px; padding:0 18px; border:0; border-radius:4px; color:#091510; background:#7bdcb5; box-shadow:none; font:700 13px 'DM Sans',sans-serif; }
+.launch-button:hover { background:#a4ead1; transform:translateY(-1px); }
+.launch-note { margin-top:9px; color:#91a59b; font:11px 'DM Sans',sans-serif; }
+.arcade-scene { position:relative; min-height:210px; background:#0c1415; }
+.arcade-star { background:#d2e0d7; box-shadow:none; }.scene-alien { color:#e7715c; text-shadow:none; }
+.lobby-starship { width:clamp(72px,8vw,100px); filter:none; animation:ship-hover 3s ease-in-out infinite; }
+.scene-ground { height:4px; border:0; background:#7bdcb5; box-shadow:none; }
+.scene-caption { color:#91a59b; font:11px 'DM Sans',sans-serif; letter-spacing:0; }
+.mode-select-panel { display:grid; gap:11px; margin-top:12px; padding:15px 18px; border:0; border-top:1px solid #28413f; border-radius:0; background:#10191a; box-shadow:none; }
+.mode-select-heading { align-items:baseline; justify-content:space-between; gap:12px; }.mode-select-heading .mission-code { display:none; }
+.mode-select-heading h2 { margin:0; color:#eff4ee; font:600 19px 'Barlow Condensed',sans-serif; letter-spacing:.02em; }.mode-select-heading p { margin:0; color:#91a59b; font-size:12px; }
+.mode-card-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; }
+.mode-card { display:flex; align-items:center; min-height:54px; gap:10px; padding:9px 12px; border:0; border-bottom:2px solid #28413f; border-radius:3px; color:#c4d0ca; background:#182425; text-align:left; }
+.mode-card:hover { border-color:#3b615c; color:#eff4ee; background:#1e302f; transform:none; }
+.mode-card.is-selected { border-color:#7bdcb5; color:#eff4ee; background:#1c3a31; box-shadow:none; }
+.mode-card-number { display:none; }.mode-card-copy { gap:2px; }.mode-card-copy strong { font:600 16px 'Barlow Condensed',sans-serif; }.mode-card-copy small { color:#bac7c0; font-size:11px; line-height:1.25; }.mode-card-check { margin-left:auto; color:#7bdcb5; font-size:14px; }
+.pool-row { display:flex; align-items:center; justify-content:flex-start; gap:14px; padding-top:10px; border:0; }
+.pool-row .session-options { display:grid; grid-template-columns:auto minmax(180px,280px); align-items:center; gap:12px; min-width:0; padding:0; border:0; background:transparent; }
+.pool-row .session-options span { color:#bac7c0; font:500 12px 'DM Sans',sans-serif; }.pool-row .session-options select { min-height:38px; padding:0 12px; border:1px solid #3b615c; border-radius:4px; color:#eff4ee; background:#080d0f; }
+.pool-count { color:#91a59b; font:11px 'DM Sans',sans-serif; }.home-progress { display:none; }
+.page-heading h1 { color:#eff4ee; font:600 27px 'Barlow Condensed',sans-serif; }.page-heading .eyebrow { display:none; }
+.button-primary { border:0; border-radius:4px; color:#091510; background:#7bdcb5; box-shadow:none; }.button-quiet { border:1px solid #28413f; border-radius:4px; color:#eff4ee; background:#182425; }
+.word-card,.empty-state,.dialog,.profile-option { border-color:#28413f; border-radius:6px; background:#10191a; box-shadow:none; }.word-en,.stat-value,.recent-score,.progress-stat strong { color:#7bdcb5; }
+.search-field input,.field input,.field select,.settings-select,.filter-select { border-color:#28413f; border-radius:4px; color:#eff4ee; background:#10191a; }
+@media(max-width:760px) {
+ .topbar { display:grid; grid-template-columns:1fr auto; min-height:83px; padding:5px 12px 0; gap:3px 8px; }
+ .brand { grid-column:1;grid-row:1; }.topbar-meta { grid-column:2;grid-row:1; }.arcade-nav { grid-column:1/-1;grid-row:2; display:flex; justify-content:space-between; width:100%; margin:0; gap:2px; }
+ .nav-link { flex:1; min-width:0; min-height:34px; padding:0 3px; font-size:11px; }
+ .home-screen { padding:clamp(20px,6vh,48px) 14px 16px; }
+ .home-heading { margin:0 0 9px; }.home-heading h1 { font-size:24px; }
+ .home-layout { grid-template-columns:minmax(0,1fr) 106px; min-height:148px; }
+ .home-launch-panel { min-height:148px; padding:14px 12px; }
+ .home-launch-panel h2 { margin-bottom:7px; font-size:clamp(27px,8vw,34px); }.home-launch-panel p { margin-bottom:9px; font-size:12px; }
+ .launch-button { min-height:38px; padding:0 12px; font-size:12px; }.launch-note { margin-top:6px; font-size:9px; }
+ .arcade-scene { min-height:148px; }.lobby-starship { width:66px; }.scene-caption { right:4px; bottom:12px; font-size:8px; }
+ .mode-select-panel { gap:9px; margin-top:8px; padding:11px 10px; }
+ .mode-select-heading { align-items:center; flex-direction:row; }.mode-select-heading h2 { font-size:18px; }.mode-select-heading p { display:none; }
+ .mode-card-grid { gap:4px; }.mode-card { min-height:50px; justify-content:center; padding:6px 3px; text-align:center; }.mode-card-copy strong { font-size:13px; }.mode-card-copy small { display:none; }.mode-card-check { display:none; }
+ .pool-row { align-items:center; gap:7px; padding-top:8px; }.pool-row .session-options { grid-template-columns:1fr; gap:4px; flex:1; }.pool-row .session-options span { font-size:10px; }.pool-row .session-options select { min-height:36px; font-size:12px; }.pool-count { font-size:9px; }
+ .screen { padding:12px; }.collection-grid { grid-template-columns:1fr; }
+}
+.game-shell { color:#eff4ee; background:#080d0f; }
+.game-screen { padding:max(7px,env(safe-area-inset-top)) clamp(8px,1.5vw,20px) max(7px,env(safe-area-inset-bottom)); }
+.game-top { min-height:42px; }.game-top-brand { color:#eff4ee; font:600 18px 'Barlow Condensed',sans-serif; letter-spacing:.04em; }.game-top-brand svg { width:25px;height:25px;color:#7bdcb5; }
+.game-top-actions { gap:7px; }.game-top-actions .button { min-height:34px; border:1px solid #28413f; border-radius:4px; color:#d5e2db; background:#10191a; font-size:12px; }
+.game-status-row { min-height:44px; border-color:#28413f; }.hud-metric,.hud-center-head { color:#bac7c0; font:500 12px 'DM Sans',sans-serif; letter-spacing:0; }.hud-metric strong { color:#7bdcb5; font:600 20px 'DM Sans',sans-serif; }.hud-combo strong { color:#a4ead1; }
+.hud-life { border:1px solid #7bdcb5; border-radius:2px; background:#7bdcb5; box-shadow:none; }.hud-life.is-lost { border-color:#28413f;background:#28413f; }.hud-track { height:4px;background:#182425; }.hud-track span { background:#7bdcb5;box-shadow:none; }
+.arena-wrap { min-height:220px;margin:8px 0;border:1px solid #28413f;border-radius:3px;background:#0c1415; background-image:none;box-shadow:none; }.arena-wrap::after { height:3px;background:#7bdcb5;box-shadow:none; }
+.game-feedback { border:1px solid #7bdcb5;border-radius:3px;color:#a4ead1;background:#10191a;font:600 13px 'DM Sans',sans-serif; }.game-feedback.is-good { border-color:#7bdcb5;color:#a4ead1;box-shadow:none; }.game-feedback.is-bad { border-color:#e7715c;color:#f09b8b; }
+.game-footer { gap:6px; }.answer-form { min-height:42px; }#game-input { height:42px;padding:0 13px;border:1px solid #3b615c;border-radius:4px;color:#eff4ee;background:#10191a;font:500 15px 'DM Sans',sans-serif;letter-spacing:.01em; }#game-input::placeholder { color:#91a59b;font:12px 'DM Sans',sans-serif;letter-spacing:0; }#game-input:focus { border-color:#7bdcb5;outline:2px solid #7bdcb544; }
+.virtual-keyboard { gap:5px;padding:6px 7px 7px;border:0;border-radius:4px;background:#10191a;box-shadow:none; }.key-row { gap:5px; }.key-row-middle { padding:0 4%; }.virtual-key { height:32px;border:0;border-bottom:2px solid #3b615c;border-radius:3px;color:#dfe9e3;background:#182425;font:600 13px 'DM Sans',sans-serif; }.virtual-key:hover { border-color:#7bdcb5;color:#a4ead1;background:#20322f; }.virtual-key:active { transform:translateY(1px); }.key-row-last .key-delete { color:#e89b8a; }.key-row-last .key-enter { border:0;border-bottom:2px solid #3b615c;color:#091510;background:#7bdcb5;font:700 13px 'DM Sans',sans-serif; }
+.game-overlay { background:#080d0fe8;backdrop-filter:blur(4px); }.overlay-panel { border:1px solid #3b615c;border-radius:6px;color:#eff4ee;background:#10191a;box-shadow:0 16px 44px #0008; }.overlay-panel p { color:#bac7c0;font-size:14px; }.result-score { border-color:#28413f; }.result-score strong { color:#7bdcb5;font:500 22px 'DM Sans',sans-serif; }.result-score span { color:#91a59b;font:11px 'DM Sans',sans-serif;text-transform:none; }.pause-mark { border-color:#7bdcb5;color:#7bdcb5; }
+@media(max-width:760px) {
+ .game-screen { padding:max(6px,env(safe-area-inset-top)) 8px max(6px,env(safe-area-inset-bottom)); }
+ .game-top { min-height:36px; }.game-top-brand { font-size:14px; }.game-top-brand svg { width:21px;height:21px; }.game-top-actions .button { min-height:30px;padding:0 9px;font-size:11px; }
+ .game-status-row { grid-template-columns:minmax(48px,.65fr) minmax(100px,1.35fr) minmax(72px,.9fr);gap:6px;min-height:43px; }.hud-metric { font-size:10px; }.hud-metric strong { font-size:16px; }.hud-center-head { font-size:10px; }.hud-combo { display:grid;grid-template-columns:auto 1fr;gap:1px 4px; }.hud-combo>span:first-child { grid-column:1/-1; }.hud-life { width:7px;height:7px; }
+ .arena-wrap { min-height:180px;margin:5px 0; }
+ .game-footer { gap:4px; }.answer-form { min-height:38px; }#game-input { height:38px;font-size:14px; }
+ .virtual-keyboard { gap:3px;padding:4px 4px 5px; }.key-row { gap:3px; }.virtual-key { height:29px;font-size:12px; }
+}
+@media(prefers-reduced-motion:reduce) { .lobby-starship { animation:none; } }
+
+@media(max-width:760px) { .home-screen { padding-top:clamp(90px,15vh,125px); } }
+.home-heading { justify-content:flex-start; }
+.home-heading > div { margin-right:auto; }
+*:where(button,a,.button,.mode-card,.virtual-key) { box-shadow:none !important; }
+.home-heading > div { margin-right:auto !important; }
+@media(max-width:760px) { .topbar { padding-inline:16px; } }
+@media(prefers-reduced-motion:reduce) { .lobby-starship { animation:none; } }
+.app-shell * { font-family:'DM Sans',sans-serif !important; }
+.app-shell h1,.app-shell h2,.app-shell h3,.app-shell .brand strong,.app-shell .game-top-brand { font-family:'Barlow Condensed',sans-serif !important; }
+.topbar-sync,.profile-option small,.profile-label small { font-size:12px !important; }

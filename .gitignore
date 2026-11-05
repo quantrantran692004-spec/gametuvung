@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.local
+.playwright-mcp/
+.taste-skill/captures/
+
+.21st/
+.taste-skill/
+graphify-out/cache/
+graphify-out/2026-11-05/

@@ -1,395 +1,75 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#0a0a1a">
-  <meta name="description" content="WORD SHOOTER - Game học từ vựng tiếng Anh bắn chữ Cyberpunk Neon">
-  <title>WORD SHOOTER — Vocabulary Game</title>
-
-  <!-- PWA Manifest -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#050817">
+  <meta name="description" content="Nghe từ tiếng Anh rơi xuống, gõ thật nhanh và bắn phá mục tiêu.">
+  <title>WORD SHOOTER — Phòng luyện phản xạ</title>
   <link rel="manifest" href="./manifest.json">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50,10 90,85 50,70 10,85' fill='%2300ffff'/%3E%3C/svg%3E">
-
-  <!-- Google Fonts -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'%3E%3Crect width='36' height='36' fill='%23080d0f'/%3E%3Cpath d='M18 3.5 31 28H5Z' fill='none' stroke='%237bdcb5' stroke-width='1.8'/%3E%3Ccircle cx='18' cy='20' r='4.2' fill='%23eff4ee'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-
-  <!-- Stylesheets -->
-  <link rel="stylesheet" href="./css/main.css?v=18">
-  <link rel="stylesheet" href="./css/game.css?v=18">
-
-  <!-- Document Export & Import Libraries (CDN) -->
-  <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./css/main.css?v=39">
+  <link rel="stylesheet" href="./css/game.css?v=39">
+  <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script type="module" src="./src/main.tsx"></script>
+  <link rel="stylesheet" href="./css/arcade-v2.css?v=7">
+  <link rel="stylesheet" href="./css/cosmic-game.css?v=3">
+  <link rel="stylesheet" href="./css/lobby-home.css?v=4">
 </head>
-<body class="perf-balanced">
-  <!-- Cyber Grid Background -->
-  <div class="cyber-grid"></div>
-
-  <div id="app">
-    <!-- Top Bar Navigation -->
-    <header class="top-nav">
-      <div style="font-family: var(--font-title); font-size: 16px; font-weight: bold; color: var(--color-neon-cyan); letter-spacing: 2px;">
-        ⚡ WORD SHOOTER
-      </div>
-      <div class="nav-profile" id="nav-profile-btn" title="Chuyển hồ sơ">
-        <span class="avatar-badge" id="nav-profile-avatar">🚀</span>
-        <span id="nav-profile-name" style="font-size: 13px; font-weight: bold;">Pilot</span>
-      </div>
+<body>
+  <div id="react-runtime"></div>
+  <div class="app-shell" id="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#home" data-route="home" aria-label="WORD SHOOTER — sảnh chính">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 36 36" fill="none"><path d="M18 3.5 31 28H5L18 3.5Z" stroke="currentColor" stroke-width="1.8"/><circle cx="18" cy="20" r="4.2" fill="currentColor"/><path d="M18 1v6M3 30h30" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+        <span><strong>WORD SHOOTER</strong><small>REACTION TRAINING · 01</small></span>
+      </a>
+      <nav class="arcade-nav" aria-label="Khu vực trò chơi">
+        <button class="nav-link is-active" type="button" data-route="home" aria-current="page">Sảnh</button>
+        <button class="nav-link" type="button" data-route="vocabulary">Kho từ</button>
+        <button class="nav-link" type="button" data-route="progress">Thành tích</button>
+        <button class="nav-link" type="button" data-route="settings">Cấu hình</button>
+      </nav>
+      <div class="topbar-meta"><span class="topbar-sync"><span class="status-dot"></span><span id="save-status">Đã lưu trên thiết bị</span></span><button class="topbar-profile" type="button" data-action="open-profiles" aria-label="Đổi hồ sơ"><span class="avatar avatar-top" id="topbar-avatar">P</span><span id="topbar-profile-name">Người chơi</span><span class="profile-caret">⌄</span></button></div>
     </header>
-
-    <!-- SCREEN: MAIN MENU -->
-    <main id="screen-main-menu" class="screen active">
-      <div class="menu-shell">
-        <section class="menu-hero">
-          <div class="eyebrow">ENGLISH PRACTICE GAME</div>
-          <h1 class="neon-title">WORD SHOOTER</h1>
-          <p>Nghe, nhớ và gõ từ tiếng Anh để bắn mục tiêu.</p>
-          <div class="menu-pills"><span>Học từ</span><span>Nghe câu</span><span>Phản xạ</span></div>
-        </section>
-
-        <section class="menu-panel">
-          <label for="game-mode-select">Chọn chế độ chơi</label>
-          <select id="game-mode-select" class="cyber-input">
-          <option value="survival">1. Sinh tồn (Mặc định 5 mạng)</option>
-          <option value="practice">2. Luyện tập tự do</option>
-          <option value="timed">3. Chơi tính giờ (30s / 60s / 120s)</option>
-          <option value="unit">4. Thử thách theo Unit / Bài học</option>
-          <option value="missed">5. Ôn từ sai & hay trượt</option>
-          <option value="favorites">6. Ôn từ yêu thích (★)</option>
-          <option value="srs">7. Luyện từ lâu chưa nhớ (Spaced Repetition)</option>
-          <option value="two_players">8. Đấu luân phiên 2 người (1 Thiết bị)</option>
-          <option value="high_score">9. Thử thách điểm cao (Tốc độ tăng dần)</option>
-          <option value="dictation">10. Nghe câu tiếng Anh & chép chính tả</option>
-          </select>
-          <div id="mode-help" class="mode-help" aria-live="polite">Bắn từ: nhìn nghĩa tiếng Việt, gõ từ tiếng Anh; mục tiêu đúng sẽ bị bắn.</div>
-          <button id="btn-to-game" class="btn btn-primary menu-start">▶ VÀO CHƠI <span>→</span></button>
-          <div class="menu-secondary">
-            <button id="btn-to-vocab" class="btn btn-pink">📚 Kho từ</button>
-            <button id="btn-to-stats" class="btn btn-green">📊 Thống kê</button>
-            <button id="btn-to-settings" class="btn">⚙ Cài đặt</button>
-          </div>
-        </section>
-      </div>
-    </main>
-
-    <!-- SCREEN: READY / GENERATED PROMPT -->
-    <main id="screen-ready" class="screen" style="justify-content: center; align-items: center; text-align: center;">
-      <div class="cyber-card ready-card" style="max-width: 520px; width: 100%;">
-        <div style="color: var(--color-text-subtle); font-size: 12px; letter-spacing: 1px;">ĐỀ ĐÃ TẠO</div>
-        <h2 class="neon-title" style="margin: 12px 0 22px;">SẴN SÀNG?</h2>
-        <div id="ready-prompt" class="ready-prompt">...</div>
-        <div id="ready-mask" class="ready-mask">a....</div>
-        <p style="color: var(--color-text-muted); margin: 16px 0 22px;">Nghe, đoán từ rồi nhấn BẮT ĐẦU để chữ bắt đầu rơi.</p>
-        <div style="display: flex; gap: 10px; justify-content: center;">
-          <button id="btn-begin-round" class="btn btn-green">▶ BẮT ĐẦU</button>
-          <button id="btn-ready-back" class="btn btn-pink">ĐỔI ĐỀ</button>
-        </div>
-      </div>
-    </main>
-
-    <!-- SCREEN: GAME ARENA -->
-    <main id="screen-game" class="screen" style="padding: 10px;">
-      <div class="game-container">
-        <!-- HUD -->
-        <div class="game-hud">
-          <div class="hud-item">
-            <span style="color: var(--color-text-muted);">ĐIỂM:</span>
-            <span id="hud-score" class="hud-value">0</span>
-          </div>
-          <div class="hud-item">
-            <span style="color: var(--color-text-muted);">MẠNG:</span>
-            <div id="hud-lives-container" class="hud-lives"></div>
-          </div>
-          <div class="hud-item hud-combo-meter">
-            <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;">
-              <span>COMBO</span>
-              <span id="hud-combo-val" style="color: var(--color-neon-pink); font-weight: bold;">0</span>
-            </div>
-            <div class="combo-bar-bg">
-              <div id="hud-combo-bar" class="combo-bar-fill"></div>
-            </div>
-          </div>
-          <div class="hud-item hud-weapon-item">
-            <span class="hud-label">VŨ KHÍ</span>
-            <span id="hud-weapon-val" class="hud-weapon-value">ĐẠN ĐƠN</span>
-          </div>
-          <div class="hud-item">
-            <span id="hud-time-val" style="color: var(--color-neon-yellow); font-size: 16px;">60s</span>
-          </div>
-          <button class="btn btn-sm btn-pink btn-back-menu" style="padding: 4px 8px; font-size: 11px;">THOÁT</button>
-        </div>
-
-        <!-- Canvas -->
-        <div class="canvas-wrapper">
-          <canvas id="game-canvas"></canvas>
-        </div>
-
-        <!-- Controls -->
-        <div class="game-controls" aria-hidden="true">
-          <div class="input-container">
-            <input type="text" id="game-input" class="game-input" inputmode="text" placeholder="Gõ đáp án tại đây..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-          </div>
-          <button id="game-speak-btn" class="btn btn-green" style="padding: 12px 14px;" title="Đọc lại từ đang rơi">🔊 ĐỌC</button>
-          <button id="game-fire-btn" class="btn btn-pink" style="padding: 12px 20px;">🎯 BẮN</button>
-        </div>
-
-        <!-- Virtual Keyboard (Hiển thị tự động trên Mobile/Tablet) -->
-        <div id="virtual-keyboard" class="virtual-keyboard" aria-label="Bàn phím nhập đáp án">
-          <div class="keyboard-caption">BÀN PHÍM TRẢ LỜI</div>
-          <div class="vk-row">
-            <button type="button" class="vk-key" data-key="q">Q</button>
-            <button type="button" class="vk-key" data-key="w">W</button>
-            <button type="button" class="vk-key" data-key="e">E</button>
-            <button type="button" class="vk-key" data-key="r">R</button>
-            <button type="button" class="vk-key" data-key="t">T</button>
-            <button type="button" class="vk-key" data-key="y">Y</button>
-            <button type="button" class="vk-key" data-key="u">U</button>
-            <button type="button" class="vk-key" data-key="i">I</button>
-            <button type="button" class="vk-key" data-key="o">O</button>
-            <button type="button" class="vk-key" data-key="p">P</button>
-          </div>
-          <div class="vk-row">
-            <button type="button" class="vk-key" data-key="a">A</button>
-            <button type="button" class="vk-key" data-key="s">S</button>
-            <button type="button" class="vk-key" data-key="d">D</button>
-            <button type="button" class="vk-key" data-key="f">F</button>
-            <button type="button" class="vk-key" data-key="g">G</button>
-            <button type="button" class="vk-key" data-key="h">H</button>
-            <button type="button" class="vk-key" data-key="j">J</button>
-            <button type="button" class="vk-key" data-key="k">K</button>
-            <button type="button" class="vk-key" data-key="l">L</button>
-          </div>
-          <div class="vk-row">
-            <button type="button" class="vk-key vk-action" data-key="space" style="flex: 1.5;">SPACE</button>
-            <button type="button" class="vk-key" data-key="z">Z</button>
-            <button type="button" class="vk-key" data-key="x">X</button>
-            <button type="button" class="vk-key" data-key="c">C</button>
-            <button type="button" class="vk-key" data-key="v">V</button>
-            <button type="button" class="vk-key" data-key="b">B</button>
-            <button type="button" class="vk-key" data-key="n">N</button>
-            <button type="button" class="vk-key" data-key="m">M</button>
-            <button type="button" class="vk-key vk-action vk-backspace" data-key="backspace" style="flex: 1.5;">⌫</button>
-          </div>
-        </div>
-
-        <!-- Game Over Overlay -->
-        <div id="game-overlay-result" class="game-overlay">
-          <div class="result-card">
-            <h2 class="neon-title" style="margin-bottom: 10px;">KẾT QUẢ TRẬN ĐẤU</h2>
-            <div class="stat-grid">
-              <div class="stat-box">
-                <div class="stat-label">Tổng Điểm</div>
-                <div id="res-score" class="stat-value neon-cyan">0</div>
-              </div>
-              <div class="stat-box">
-                <div class="stat-label">Từ Đã Bắn</div>
-                <div id="res-words" class="stat-value neon-pink">0</div>
-              </div>
-              <div class="stat-box">
-                <div class="stat-label">Độ Chính Xác</div>
-                <div id="res-accuracy" class="stat-value neon-green">0%</div>
-              </div>
-              <div class="stat-box">
-                <div class="stat-label">Combo Cao Nhất</div>
-                <div id="res-combo" class="stat-value">0</div>
-              </div>
-            </div>
-            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
-              <button id="btn-play-again" class="btn">CHƠI LẠI</button>
-              <button id="btn-result-menu" class="btn btn-pink">VỀ MENU</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
-
-    <!-- SCREEN: VOCABULARY -->
-    <main id="screen-vocab" class="screen">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-        <h2 class="neon-title" style="margin: 0;">KHO TỪ VỰNG</h2>
-        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-          <button id="btn-open-add-word" class="btn btn-sm btn-green">+ THÊM TỪ</button>
-          <button id="btn-open-import" class="btn btn-sm" style="border-color: var(--color-neon-yellow); color: var(--color-neon-yellow);">📥 NHẬP FILE</button>
-          <button id="btn-export-word" class="btn btn-sm" style="border-color: #4a9eff; color: #4a9eff;">📄 XUẤT WORD</button>
-          <button id="btn-export-csv" class="btn btn-sm" style="border-color: #a855f7; color: #a855f7;">📊 XUẤT CSV</button>
-          <button id="btn-export-json" class="btn btn-sm" style="border-color: #64748b; color: #94a3b8;">💾 SAO LƯU</button>
-          <button class="btn btn-sm btn-pink btn-back-menu">MENU</button>
-        </div>
-      </div>
-
-      <!-- Import File Input (Hidden) -->
-      <input type="file" id="file-import-input" accept=".txt,.csv,.xlsx,.xls" style="display: none;">
-
-      <!-- Filter Bar -->
-      <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-        <input type="text" id="vocab-search-input" class="cyber-input" placeholder="🔍 Tìm kiếm từ vựng tiếng Anh hoặc tiếng Việt..." style="flex: 1;">
-      </div>
-
-      <div id="vocab-list" style="flex: 1; overflow-y: auto;"></div>
-    </main>
-
-    <!-- SCREEN: STATS -->
-    <main id="screen-stats" class="screen">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2 class="neon-title">THỐNG KÊ CHIẾN TÍCH</h2>
-        <button class="btn btn-sm btn-pink btn-back-menu">MENU</button>
-      </div>
-      <div id="stats-content" style="flex: 1; overflow-y: auto;"></div>
-    </main>
-
-    <!-- SCREEN: SETTINGS -->
-    <main id="screen-settings" class="screen">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2 class="neon-title">CÀI ĐẶT HỆ THỐNG</h2>
-        <button class="btn btn-sm btn-pink btn-back-menu">MENU</button>
-      </div>
-
-      <form id="form-settings" class="cyber-card" style="max-width: 600px; margin: 0 auto; width: 100%;">
-        <div style="margin-bottom: 16px;">
-          <label style="display: block; font-size: 13px; margin-bottom: 6px;">Ngôn ngữ giao diện</label>
-          <select id="setting-lang" class="cyber-input">
-            <option value="vi">Tiếng Việt</option>
-            <option value="en">English</option>
-          </select>
-        </div>
-
-        <div style="margin-bottom: 16px;">
-          <label style="display: block; font-size: 13px; margin-bottom: 6px;">Cấu hình hiệu năng & đồ họa</label>
-          <select id="setting-perf" class="cyber-input">
-            <option value="balanced">Balanced (Cân bằng hiệu năng & hình ảnh)</option>
-            <option value="low">Low-power (Tiết kiệm pin, máy yếu)</option>
-            <option value="visual">Visual Max (Hiệu ứng tối đa)</option>
-          </select>
-        </div>
-
-        <div style="margin-bottom: 16px;">
-          <label style="display: block; font-size: 13px; margin-bottom: 6px;">Chiều câu hỏi từ vựng</label>
-          <select id="setting-direction" class="cyber-input">
-            <option value="en-vi">Tiếng Anh ➔ Nhập nghĩa Tiếng Việt</option>
-            <option value="vi-en">Tiếng Việt ➔ Nhập từ Tiếng Anh</option>
-          </select>
-        </div>
-
-        <div style="margin-bottom: 16px;">
-          <label style="display: block; font-size: 13px; margin-bottom: 6px;">Tốc độ rơi của từ</label>
-          <select id="setting-speed" class="cyber-input">
-            <option value="slow">Chậm rãi (Slow)</option>
-            <option value="normal">Vừa phải (Normal)</option>
-            <option value="fast">Nhanh (Fast)</option>
-          </select>
-        </div>
-
-        <div style="margin-bottom: 16px;">
-          <label style="display: block; font-size: 13px; margin-bottom: 6px;">Số mạng khởi điểm (Chế độ sinh tồn)</label>
-          <input type="number" id="setting-lives" class="cyber-input" min="1" max="10" value="5">
-        </div>
-
-        <div style="margin-bottom: 16px;">
-          <label style="display: block; font-size: 13px; margin-bottom: 6px;">Thời gian chế độ Tính giờ</label>
-          <select id="setting-timer" class="cyber-input">
-            <option value="30">30 Giây (Chớp nhoáng)</option>
-            <option value="60">60 Giây (Tiêu chuẩn)</option>
-            <option value="120">120 Giây (Bền bỉ)</option>
-          </select>
-        </div>
-
-        <div style="margin-bottom: 16px;">
-          <label style="display: block; font-size: 13px; margin-bottom: 6px;">Độ nghiêm ngặt chấm đáp án (Mục 7)</label>
-          <select id="setting-strictness" class="cyber-input">
-            <option value="lenient">Dễ dãi (Chấp nhận lỗi gõ phím nhỏ, bỏ dấu câu)</option>
-            <option value="normal">Tiêu chuẩn (Fuzzy match 1 ký tự)</option>
-            <option value="strict">Nghiêm ngặt (Chính xác 100%, phân biệt chữ hoa/thường)</option>
-          </select>
-        </div>
-
-        <div style="margin-bottom: 16px;">
-          <label style="display: block; font-size: 13px; margin-bottom: 6px;">Tùy chỉnh tắt riêng hiệu ứng (Mục 3)</label>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; margin-top: 4px;">
-            <label><input type="checkbox" id="effect-neon" checked> Hiệu ứng Neon Glow</label>
-            <label><input type="checkbox" id="effect-laser" checked> Tia Laser pháo</label>
-            <label><input type="checkbox" id="effect-particles" checked> Hạt sáng phát nổ</label>
-            <label><input type="checkbox" id="effect-shake" checked> Rung màn hình khi trượt</label>
-          </div>
-        </div>
-
-        <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
-          <input type="checkbox" id="setting-voice" style="transform: scale(1.3);">
-          <label for="setting-voice" style="font-size: 14px;">Tự động đọc mục tiêu khi xuất hiện</label>
-        </div>
-
-        <div class="voice-settings-grid" style="margin-bottom: 16px;">
-          <div>
-            <label for="setting-voice-name" style="display: block; font-size: 13px; margin-bottom: 6px;">Giọng đọc tiếng Anh</label>
-            <select id="setting-voice-name" class="cyber-input">
-              <option value="">Tự động chọn giọng rõ nhất</option>
-            </select>
-          </div>
-          <div>
-            <label for="setting-voice-rate" style="display: block; font-size: 13px; margin-bottom: 6px;">Tốc độ đọc</label>
-            <select id="setting-voice-rate" class="cyber-input">
-              <option value="0.55">Chậm, rất rõ</option>
-              <option value="0.68" selected>Vừa, rõ ràng</option>
-              <option value="0.82">Nhanh</option>
-            </select>
-          </div>
-          <button type="button" id="btn-test-voice" class="btn btn-sm voice-test-btn">▶ NGHE THỬ</button>
-        </div>
-
-        <div style="margin-bottom: 24px; display: flex; align-items: center; gap: 10px;">
-          <input type="checkbox" id="setting-sound" style="transform: scale(1.3);">
-          <label for="setting-sound" style="font-size: 14px;">Bật hiệu ứng âm thanh Laser & Nổ (Web Audio)</label>
-        </div>
-
-        <button type="submit" class="btn btn-green" style="width: 100%;">LƯU THAY ĐỔI</button>
-      </form>
-    </main>
-
-    <!-- SCREEN: PROFILES -->
-    <main id="screen-profiles" class="screen">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2 class="neon-title">HỒ SƠ NGƯỜI CHƠI</h2>
-        <div style="display: flex; gap: 8px;">
-          <button id="btn-create-profile" class="btn btn-sm btn-green">+ TẠO HỒ SƠ</button>
-          <button class="btn btn-sm btn-pink btn-back-menu">MENU</button>
-        </div>
-      </div>
-      <div id="profiles-list" style="max-width: 600px; margin: 0 auto; width: 100%;"></div>
-    </main>
-
-    <!-- MODAL: ADD WORD -->
-    <div id="modal-add-word" class="modal-overlay">
-      <div class="modal-content">
-        <h3 class="neon-title" style="margin-bottom: 16px;">THÊM TỪ VỰNG MỚI</h3>
-        <form id="form-add-word">
-          <div style="margin-bottom: 12px;">
-            <label style="font-size: 12px; color: var(--color-neon-cyan); display: block; margin-bottom: 4px;">TỪ TIẾNG ANH *</label>
-            <input type="text" id="input-word-en" class="cyber-input" required placeholder="VD: cybernetic">
-          </div>
-          <div style="margin-bottom: 12px;">
-            <label style="font-size: 12px; color: var(--color-neon-pink); display: block; margin-bottom: 4px;">NGHĨA TIẾNG VIỆT *</label>
-            <input type="text" id="input-word-vi" class="cyber-input" required placeholder="VD: điều khiển học">
-          </div>
-          <div style="margin-bottom: 12px;">
-            <label style="font-size: 12px; color: var(--color-text-muted); display: block; margin-bottom: 4px;">PHIÊN ÂM IPA</label>
-            <input type="text" id="input-word-ipa" class="cyber-input" placeholder="VD: /ˌsaɪ.bəˈnet.ɪk/">
-          </div>
-          <div style="margin-bottom: 20px;">
-            <label style="font-size: 12px; color: var(--color-text-muted); display: block; margin-bottom: 4px;">UNIT / CHỦ ĐỀ</label>
-            <input type="text" id="input-word-unit" class="cyber-input" placeholder="VD: Technology">
-          </div>
-          <div style="display: flex; gap: 10px; justify-content: flex-end;">
-            <button type="button" id="btn-cancel-add-word" class="btn btn-pink">HỦY</button>
-            <button type="submit" class="btn btn-green">LƯU TỪ</button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <main class="page-main" id="page-main" tabindex="-1"><div id="app-view" aria-live="polite"></div></main>
   </div>
 
-  <!-- Entry Script with Cache Busting -->
-  <script type="module" src="./js/app.js?v=18"></script>
+  <main class="game-shell" id="game-shell" hidden aria-label="Màn chơi">
+    <div id="game-screen"></div>
+  </main>
+
+  <dialog class="dialog" id="word-dialog" aria-labelledby="word-dialog-title">
+    <form id="word-form" method="dialog">
+      <div class="dialog-heading"><div><span class="eyebrow">BỘ SƯU TẬP</span><h2 id="word-dialog-title">Thêm từ vào kho</h2><p>Mỗi mục tiêu mới sẽ xuất hiện trong lượt kế tiếp.</p></div><button class="icon-button" type="button" data-action="close-dialog" aria-label="Đóng">×</button></div>
+      <label class="field"><span>Từ tiếng Anh</span><input name="english" required maxlength="80" autocomplete="off" placeholder="Ví dụ: improve"></label>
+      <label class="field"><span>Nghĩa tiếng Việt</span><input name="vietnamese" required maxlength="120" autocomplete="off" placeholder="Ví dụ: cải thiện"></label>
+      <div class="field-row"><label class="field"><span>Phiên âm · không bắt buộc</span><input name="ipa" maxlength="80" placeholder="/ɪmˈpruːv/"></label><label class="field"><span>Chủ đề</span><input name="unit" maxlength="40" placeholder="General"></label></div>
+      <div class="dialog-actions"><button class="button button-quiet" type="button" data-action="close-dialog">Để sau</button><button class="button button-primary" type="submit">Lưu từ</button></div>
+    </form>
+  </dialog>
+
+  <dialog class="dialog dialog-narrow" id="profile-dialog" aria-labelledby="profile-dialog-title">
+    <div class="dialog-heading"><div><span class="eyebrow">NGƯỜI CHƠI</span><h2 id="profile-dialog-title">Hồ sơ</h2><p>Tiến độ của từng người được giữ riêng trên thiết bị.</p></div><button class="icon-button" type="button" data-action="close-dialog" aria-label="Đóng">×</button></div>
+    <div id="profile-list" class="profile-list"></div>
+    <form id="profile-form" class="profile-create-form"><label class="field"><span>Tạo hồ sơ mới</span><input name="name" required maxlength="24" placeholder="Tên người chơi"></label><button class="button button-primary" type="submit">Tạo hồ sơ</button></form>
+  </dialog>
+
+  <input id="file-import-input" type="file" accept=".csv,.txt,.xlsx,.xls,.json" hidden>
+  <div class="toast-region" id="toast-region" role="status" aria-live="polite" aria-atomic="true"></div>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+

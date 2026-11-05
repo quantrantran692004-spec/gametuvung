@@ -1,0 +1,218 @@
+{
+  "js/answer-checker.js": {
+    "mtime": 1793856924.1299572,
+    "seen": 1793858817.763188,
+    "ast_hash": "4d9d9288d578f00720271e30c1d20056",
+    "semantic_hash": "4d9d9288d578f00720271e30c1d20056"
+  },
+  "js/app.js": {
+    "mtime": 1793865205.3189955,
+    "seen": 1793865888.6951015,
+    "ast_hash": "e0f8c46834a37d4f75d87f975c7c9cad",
+    "semantic_hash": ""
+  },
+  "js/audio-manager.js": {
+    "mtime": 1793864669.579169,
+    "seen": 1793865888.6951015,
+    "ast_hash": "ecaf74c32edcc5148e8bbeb994021407",
+    "semantic_hash": ""
+  },
+  "js/db.js": {
+    "mtime": 1793856924.1869633,
+    "seen": 1793858817.763188,
+    "ast_hash": "5cb22d6d29df84232791ffc23811dc09",
+    "semantic_hash": "5cb22d6d29df84232791ffc23811dc09"
+  },
+  "js/doc-exporter.js": {
+    "mtime": 1793856924.2149565,
+    "seen": 1793858817.763188,
+    "ast_hash": "5bc0b4d21cc728a5f790fa21f718a5cf",
+    "semantic_hash": "5bc0b4d21cc728a5f790fa21f718a5cf"
+  },
+  "js/game-engine.js": {
+    "mtime": 1793865820.9731278,
+    "seen": 1793865888.6960993,
+    "ast_hash": "99e4c356688e170a6cc9857ffd4233de",
+    "semantic_hash": ""
+  },
+  "js/i18n.js": {
+    "mtime": 1793856924.3235288,
+    "seen": 1793858817.763188,
+    "ast_hash": "94ae4bfbaf00c2434df020228944395a",
+    "semantic_hash": "94ae4bfbaf00c2434df020228944395a"
+  },
+  "js/importer.js": {
+    "mtime": 1793856924.3291335,
+    "seen": 1793858817.763188,
+    "ast_hash": "27a64f3f0ac591de65caf0d0f287d8de",
+    "semantic_hash": ""
+  },
+  "js/profile-manager.js": {
+    "mtime": 1793863154.9205213,
+    "seen": 1793863248.5691788,
+    "ast_hash": "e7eb9c055e069fb8e631442cd5c2bca6",
+    "semantic_hash": ""
+  },
+  "js/sentence-manager.js": {
+    "mtime": 1793856924.3607206,
+    "seen": 1793858817.763188,
+    "ast_hash": "17227a45f5ea929a77e84507814fb092",
+    "semantic_hash": "17227a45f5ea929a77e84507814fb092"
+  },
+  "js/spaced-repetition.js": {
+    "mtime": 1793856924.4147272,
+    "seen": 1793858817.763188,
+    "ast_hash": "40c0cb42fc93510cdf3f2d579954f045",
+    "semantic_hash": "40c0cb42fc93510cdf3f2d579954f045"
+  },
+  "js/stats-manager.js": {
+    "mtime": 1793856924.4257176,
+    "seen": 1793858817.763188,
+    "ast_hash": "3dff1f5afb0ba4bf51cd046458b4ab06",
+    "semantic_hash": ""
+  },
+  "js/ui-manager.js": {
+    "mtime": 1793865205.3039916,
+    "seen": 1793865888.6960993,
+    "ast_hash": "dc535bffd20d086bd125f701f27a7280",
+    "semantic_hash": ""
+  },
+  "js/vocab-manager.js": {
+    "mtime": 1793856924.4827118,
+    "seen": 1793858817.763188,
+    "ast_hash": "c125cba3f753ee338dc09307d311553d",
+    "semantic_hash": ""
+  },
+  "manifest.json": {
+    "mtime": 1793864932.6610732,
+    "seen": 1793865888.6960993,
+    "ast_hash": "90226c5a479b9f0d861668a86f14a12d",
+    "semantic_hash": ""
+  },
+  "sw.js": {
+    "mtime": 1793863964.4327607,
+    "seen": 1793865888.6960993,
+    "ast_hash": "bcbca4c1620057fe1e55dfebf153f8a4",
+    "semantic_hash": ""
+  },
+  "DEPLOY.md": {
+    "mtime": 1793864932.6480432,
+    "seen": 1793865888.6960993,
+    "ast_hash": "96a61d11c181d0e7fc157347c78857cf",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1793864932.6460738,
+    "seen": 1793865888.6960993,
+    "ast_hash": "8a0645103764347a779a495264f8c0cb",
+    "semantic_hash": ""
+  },
+  "index.html": {
+    "mtime": 1793865536.3966403,
+    "seen": 1793865888.6960993,
+    "ast_hash": "c042eb1cb5f3b37f33a8ac62164bb0b3",
+    "semantic_hash": ""
+  },
+  "PRODUCT.md": {
+    "mtime": 1793858262.0753188,
+    "seen": 1793858817.763188,
+    "ast_hash": "b65513c2ff74b5db9869d8374db177b7",
+    "semantic_hash": ""
+  },
+  "REBUILD_PLAN.md": {
+    "mtime": 1793860372.7111652,
+    "seen": 1793860678.0393753,
+    "ast_hash": "7dca619d8c1576079a8b2db8155d1588",
+    "semantic_hash": ""
+  },
+  "package.json": {
+    "mtime": 1793864932.5770416,
+    "seen": 1793865888.6960993,
+    "ast_hash": "149cd018eae7a7fc879ddde7777cce9f",
+    "semantic_hash": ""
+  },
+  "src/components/GameScreen.tsx": {
+    "mtime": 1793864451.6841078,
+    "seen": 1793865888.6960993,
+    "ast_hash": "845766db37097c69230d3d343efce3c3",
+    "semantic_hash": ""
+  },
+  "src/components/HomeLobby.tsx": {
+    "mtime": 1793864377.145269,
+    "seen": 1793865888.6960993,
+    "ast_hash": "35403699318b96a1f469822be9d432d9",
+    "semantic_hash": ""
+  },
+  "src/game/PixiGameScene.ts": {
+    "mtime": 1793865820.965125,
+    "seen": 1793865888.6960993,
+    "ast_hash": "ec64adf2a24a7cf7abffa0721fb35278",
+    "semantic_hash": ""
+  },
+  "src/global.d.ts": {
+    "mtime": 1793865820.9751322,
+    "seen": 1793865888.6960993,
+    "ast_hash": "a3a340eeb53a7b31b9c87275d82f4ff2",
+    "semantic_hash": ""
+  },
+  "src/main.tsx": {
+    "mtime": 1793864739.8599536,
+    "seen": 1793865888.6960993,
+    "ast_hash": "db3f956c784a24891862d9a24ae02c52",
+    "semantic_hash": ""
+  },
+  "tsconfig.json": {
+    "mtime": 1793864709.7143195,
+    "seen": 1793865888.6960993,
+    "ast_hash": "a30f6258e0e3c11b79910d734ef4d5d2",
+    "semantic_hash": ""
+  },
+  "vite.config.ts": {
+    "mtime": 1793865820.9771323,
+    "seen": 1793865888.6960993,
+    "ast_hash": "709d9ade07f51a673a1f866980b8f763",
+    "semantic_hash": ""
+  },
+  "assets/cosmic-arena.webp": {
+    "mtime": 1793865791.102,
+    "seen": 1793865888.6960993,
+    "ast_hash": "43fb1061f928db9a0454818029df9206",
+    "semantic_hash": ""
+  },
+  "assets/lobby-cosmos.webp": {
+    "mtime": 1793865791.121,
+    "seen": 1793865888.6960993,
+    "ast_hash": "7027a33cd784bbf8aa5d63a5d1655bfd",
+    "semantic_hash": ""
+  },
+  "assets/player-starfighter.webp": {
+    "mtime": 1793865791.315,
+    "seen": 1793865888.6960993,
+    "ast_hash": "326732e22b30656f243dc9dc05023fda",
+    "semantic_hash": ""
+  },
+  "assets/audio/impact.wav": {
+    "mtime": 1793864631.5323446,
+    "seen": 1793865888.6960993,
+    "ast_hash": "78bd4ca394be68d9c9b6db6ead3e2390",
+    "semantic_hash": ""
+  },
+  "assets/audio/laser.wav": {
+    "mtime": 1793864631.5183408,
+    "seen": 1793865888.6960993,
+    "ast_hash": "156d51e0e77cb432684b8572437aee47",
+    "semantic_hash": ""
+  },
+  "assets/audio/miss.wav": {
+    "mtime": 1793864631.5383387,
+    "seen": 1793865888.6960993,
+    "ast_hash": "0b7ca0b6ae2c1c74c502da28f2d9a7c8",
+    "semantic_hash": ""
+  },
+  "package-lock.json": {
+    "mtime": 1793863557.5398445,
+    "seen": 1793865888.6960993,
+    "ast_hash": "351385af22f2d37dea2f73f93746106b",
+    "semantic_hash": ""
+  }
+}

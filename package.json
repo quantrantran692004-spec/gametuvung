@@ -1,0 +1,43 @@
+{
+  "name": "word-shooter",
+  "version": "1.0.0",
+  "description": "Luyện phản xạ tiếng Anh trong một game bắn súng không gian kiểu arcade cổ điển. Người chơi nghe từ tiếng Anh, nhìn nghĩa tiếng Việt, gõ đáp án để phi thuyền bắn hạ mục tiêu trước khi nó chạm đáy.",
+  "main": "src/main.tsx",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/quantrantran692004-spec/gametuvung.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/quantrantran692004-spec/gametuvung/issues"
+  },
+  "homepage": "https://github.com/quantrantran692004-spec/gametuvung#readme",
+  "dependencies": {
+    "@tailwindcss/vite": "^4.3.4",
+    "gsap": "^3.15.1",
+    "howler": "^2.2.4",
+    "motion": "^14.9.1",
+    "pixi.js": "^8.22.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "tailwindcss": "^4.3.4"
+  },
+  "devDependencies": {
+    "@types/howler": "^2.2.13",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.2.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.6",
+    "vite-plugin-pwa": "^2.0.0"
+  }
+}
