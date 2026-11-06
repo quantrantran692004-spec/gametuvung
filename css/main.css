@@ -860,3 +860,10 @@ body { background-image:radial-gradient(circle at 11% 17%,#d2d0c6 0 1px,transpar
 }
 @media(max-width:760px) { .home-screen { padding-top:clamp(82px,18vh,150px); } }
 @media(min-width:761px) { .home-screen { padding-top:clamp(18px,4vh,40px); } }
+
+#bulk-word-form textarea { width:100%; min-height:160px; padding:12px; resize:vertical; border:1px solid var(--line-strong); border-radius:8px; color:var(--ink); background:#10132a; }
+#bulk-word-error { color:#ff9b8d; font-size:14px; }
+#bulk-word-dialog { color:#eef4ff; background:#101a2d; }
+#bulk-word-dialog h2, #bulk-word-dialog .field span { color:#eef4ff; }
+#bulk-word-dialog .dialog-heading p, #bulk-word-dialog .eyebrow { color:#b6c9e6; }
+#bulk-word-form textarea::placeholder { color:#aebbd3; }

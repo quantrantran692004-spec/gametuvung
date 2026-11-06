@@ -16,7 +16,7 @@
   <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script type="module" src="./src/main.tsx"></script>
   <link rel="stylesheet" href="./css/arcade-v2.css?v=7">
-  <link rel="stylesheet" href="./css/cosmic-game.css?v=3">
+  <link rel="stylesheet" href="./css/cosmic-game.css?v=12">
   <link rel="stylesheet" href="./css/lobby-home.css?v=4">
 </head>
 <body>
@@ -48,7 +48,16 @@
       <label class="field"><span>Từ tiếng Anh</span><input name="english" required maxlength="80" autocomplete="off" placeholder="Ví dụ: improve"></label>
       <label class="field"><span>Nghĩa tiếng Việt</span><input name="vietnamese" required maxlength="120" autocomplete="off" placeholder="Ví dụ: cải thiện"></label>
       <div class="field-row"><label class="field"><span>Phiên âm · không bắt buộc</span><input name="ipa" maxlength="80" placeholder="/ɪmˈpruːv/"></label><label class="field"><span>Chủ đề</span><input name="unit" maxlength="40" placeholder="General"></label></div>
-      <div class="dialog-actions"><button class="button button-quiet" type="button" data-action="close-dialog">Để sau</button><button class="button button-primary" type="submit">Lưu từ</button></div>
+      <div class="dialog-actions"><button class="button button-quiet" type="button" data-action="open-bulk-words">Thêm hàng loạt</button><button class="button button-quiet" type="button" data-action="close-dialog">Để sau</button><button class="button button-primary" type="submit">Lưu từ</button></div>
+    </form>
+  </dialog>
+
+  <dialog class="dialog" id="bulk-word-dialog" aria-labelledby="bulk-word-title">
+    <form id="bulk-word-form">
+      <div class="dialog-heading"><div><span class="eyebrow">BỘ SƯU TẬP</span><h2 id="bulk-word-title">Thêm nhiều từ</h2><p>Mỗi dòng nhập một từ tiếng Anh và nghĩa, ngăn cách bằng dấu gạch ngang.</p></div><button class="icon-button" type="button" data-action="close-dialog" aria-label="Đóng">×</button></div>
+      <label class="field"><span>Danh sách từ</span><textarea name="words" required rows="8" placeholder="apple - quả táo&#10;book - quyển sách"></textarea></label>
+      <p id="bulk-word-error" role="alert" hidden></p>
+      <div class="dialog-actions"><button class="button button-quiet" type="button" data-action="close-dialog">Hủy</button><button class="button button-primary" type="submit">Thêm vào kho</button></div>
     </form>
   </dialog>
 
@@ -62,6 +71,10 @@
   <div class="toast-region" id="toast-region" role="status" aria-live="polite" aria-atomic="true"></div>
 </body>
 </html>
+
+
+
+
 
 
 

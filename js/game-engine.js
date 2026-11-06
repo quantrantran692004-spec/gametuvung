@@ -1,3 +1,10 @@
+import projectileImage from '../assets/game-themes/projectile.webp';
+import { characterStates } from './typing-feedback.js';
+const fallbackPlayers = import.meta.glob('../assets/game-themes/player-*.webp', { eager: true, query: '?url', import: 'default' });
+const fallbackCards = import.meta.glob('../assets/game-themes/card-*.webp', { eager: true, query: '?url', import: 'default' });
+import floralCard from '../assets/game-themes/word-ornate.webp';
+import floralSword from '../assets/game-themes/flying-ornate.webp';
+import plainSword from '../assets/game-themes/flying-sword.webp';
 import { AnswerChecker } from './answer-checker.js?v=31';
 import { audioManager } from './audio-manager.js?v=31';
 import { SpacedRepetition } from './spaced-repetition.js?v=31';
@@ -6,12 +13,19 @@ import { vocabManager } from './vocab-manager.js?v=31';
 export class GameEngine {
   constructor(canvas, options = {}) {
     this.canvas = canvas;
+    try { this.themeId = localStorage.getItem('word-shooter-game-theme') || '0'; } catch { this.themeId = '0'; }
+    this.themedArena = this.themeId !== '0';
+    this.projectileSprite = new Image();
+    this.projectileSprite.src = projectileImage;
+    this.cardSprite = new Image();
+    const cardUrl = this.themeId === '2' ? floralCard : fallbackCards[`../assets/game-themes/card-${this.themeId}.webp`];
+    if (cardUrl) this.cardSprite.src = cardUrl;
     this.ctx = canvas.getContext('2d');
     this.options = options;
     this.reducedEffects = options.reducedEffects === true
       || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
     this.shipSprite = new Image();
-    this.shipSprite.src = './assets/player-starfighter.webp';
+    this.shipSprite.src = !this.themedArena ? './assets/player-starfighter.webp' : (this.themeId === '2' ? floralSword : (fallbackPlayers[`../assets/game-themes/player-${this.themeId}.webp`] || plainSword));
     
     // Game State
     this.isRunning = false;
@@ -165,8 +179,8 @@ export class GameEngine {
     const displayPrompt = item.vietnamese;
     const targetWord = item.english;
     const subHint = item.ipa || '';
-    const approxWidth = Math.min(this.canvas.width - 24, Math.max(210, Math.max(displayPrompt.length, targetWord.length) * 14 + 48));
-    const padding = 12;
+    const approxWidth = Math.min(this.canvas.width - 24, Math.max(this.themedArena && this.canvas.width >= 800 ? 250 : 180, Math.max(displayPrompt.length, targetWord.length) * 14 + 48));
+    const padding = this.canvas.width > 800 ? Math.max(12, this.canvas.width * 0.15) : 12;
     const maxX = Math.max(padding, this.canvas.width - approxWidth - padding);
     // HUD is now a slim overlay inside the arena, so keep new targets clear of it.
     const y = this.canvas.width < 500 ? 58 : 66;
@@ -190,12 +204,11 @@ export class GameEngine {
     
     // Keep a readable reaction window across phone and desktop. Speeds are
     // derived from the actual arena height instead of fixed screen pixels.
-    const fallSeconds = this.mode === 'practice'
-      ? 22
-      : (this.options.speed === 'fast' ? 9 : (this.options.speed === 'slow' ? 18 : 14));
+    const fallSeconds = Math.max(5, Math.min(60, Number(this.options.fallSeconds) || (this.mode === 'practice' ? 22 : (this.options.speed === 'fast' ? 9 : (this.options.speed === 'slow' ? 18 : 14)))));
     const spawnY = y;
     const targetHeight = 72;
-    const speedBase = Math.max(1, (this.canvas.height - spawnY - targetHeight) / fallSeconds);
+    const playBottom = this.canvas.height - (this.themedArena ? Math.min(120, this.canvas.height * .18) : 0);
+    const speedBase = Math.max(1, (playBottom - spawnY - targetHeight) / fallSeconds);
     const wordEntity = {
       id: Math.random().toString(36).substring(2, 8),
       prompt: displayPrompt,     // Nghĩa tiếng Việt hiển thị to ở trên
@@ -228,6 +241,7 @@ export class GameEngine {
 
     // Gõ xóa sạch ô nhập thì bỏ khóa mục tiêu để lượt gõ kế tiếp tự chọn từ mới.
     if (!clean) {
+      this.activeWords.forEach(word => { word.typedInput = ''; });
       this.selectedTargetId = null;
       return false;
     }
@@ -242,6 +256,7 @@ export class GameEngine {
 
     const w = this.activeWords[targetIndex];
     if (!w) return false;
+    w.typedInput = clean;
     const targetClean = w.target.trim().toLowerCase();
 
     // Exact match reached -> AUTO SHOOT!
@@ -377,11 +392,11 @@ export class GameEngine {
     const targetX = target.x + target.width / 2;
     const targetY = target.y + target.height / 2;
     const cannonX = this.canvas.width / 2;
-    const cannonY = this.canvas.height - 112;
+    const cannonY = this.canvas.height - (this.themedArena ? Math.min(200, this.canvas.height * .22) : 112);
     const angle = Math.atan2(targetY - cannonY, targetX - cannonX);
     const muzzleX = cannonX + Math.cos(angle) * 14;
     const muzzleY = cannonY + Math.sin(angle) * 14;
-    const color = level === 3 ? '#ff9b57' : (level === 2 ? '#9d88ff' : '#66eaff');
+    const color = this.themedArena ? '#77edff' : (level === 3 ? '#ff9b57' : (level === 2 ? '#9d88ff' : '#66eaff'));
     const offsets = level === 2 ? [-12, 12] : [0];
     offsets.forEach(offset => {
       this.projectiles.push({
@@ -393,7 +408,7 @@ export class GameEngine {
         x: muzzleX,
         y: muzzleY,
         progress: 0,
-        speed: level === 3 ? 0.032 : 0.04,
+        speed: this.themedArena ? 0.032 : (level === 3 ? 0.032 : 0.04),
         type: level === 3 ? 'missile' : 'bullet',
         color
       });
@@ -443,10 +458,14 @@ export class GameEngine {
       w.y += w.vy * deltaSeconds;
 
       // Word reached bottom
-      if (w.y + w.height >= this.canvas.height) {
+      if (w.y + w.height >= this.canvas.height - (this.themedArena ? Math.min(120, this.canvas.height * .18) : 0)) {
         this.totalAttempts++;
         this.missedWords++;
         this.activeWords.splice(i, 1);
+        if (w.id === this.selectedTargetId) {
+          this.selectedTargetId = null;
+          this.onAnswerFeedback({ correct: false, autoMiss: true });
+        }
         this.combo = 0;
         audioManager.playMiss();
 
@@ -481,8 +500,11 @@ export class GameEngine {
         this.projectiles.splice(i, 1);
         continue;
       }
-      p.x = p.x1 + (p.targetX - p.x1) * p.progress;
-      p.y = p.y1 + (p.targetY - p.y1) * p.progress;
+      const movingTarget = this.activeWords.find(word => word.id === p.targetId);
+      if (movingTarget) { p.targetX = movingTarget.x + movingTarget.width / 2; p.targetY = movingTarget.y + movingTarget.height / 2; }
+      const eased = 1 - (1 - p.progress) * (1 - p.progress);
+      p.x = p.x1 + (p.targetX - p.x1) * eased;
+      p.y = p.y1 + (p.targetY - p.y1) * eased;
       if (p.type === 'missile' && Math.random() > 0.45) {
         this.particles.push({ x: p.x, y: p.y, vx: (Math.random() - .5), vy: 1.5, life: .7, decay: .08, color: '#7bdcb5', size: 4 });
       }
@@ -541,18 +563,24 @@ export class GameEngine {
       const beam = ctx.createLinearGradient(0, w.y - 48, 0, w.y + 2);
       beam.addColorStop(0, 'rgba(95,211,255,0)'); beam.addColorStop(1, selected ? 'rgba(255,127,80,.62)' : 'rgba(88,193,255,.45)');
       ctx.fillStyle = beam; ctx.fillRect(w.x + w.width / 2 - 1, Math.max(0, w.y - 50), 2, 50);
-      const cut = Math.min(16, w.height / 3);
-      ctx.beginPath(); ctx.moveTo(w.x + cut, w.y); ctx.lineTo(w.x + w.width - cut, w.y); ctx.lineTo(w.x + w.width, w.y + cut); ctx.lineTo(w.x + w.width, w.y + w.height - cut); ctx.lineTo(w.x + w.width - cut, w.y + w.height); ctx.lineTo(w.x + cut, w.y + w.height); ctx.lineTo(w.x, w.y + w.height - cut); ctx.lineTo(w.x, w.y + cut); ctx.closePath();
-      ctx.fillStyle = selected ? 'rgba(90,25,56,.94)' : 'rgba(11,28,72,.91)';
-      ctx.shadowColor = selected ? '#ff654f' : '#60bfff'; ctx.shadowBlur = this.reducedEffects ? 0 : (selected ? 26 : 14); ctx.fill();
-      ctx.shadowBlur = 0; ctx.lineWidth = selected ? 2.2 : 1.4; ctx.strokeStyle = selected ? '#ff8967' : '#79cbff'; ctx.stroke();
+      const floral = ['1', '2', '3'].includes(this.themeId);
+      const hasCard = this.themedArena && this.cardSprite.complete && this.cardSprite.naturalWidth;
+      if (hasCard) {
+        ctx.drawImage(this.cardSprite, w.x - 16, w.y - 22, w.width + 32, w.height + 45);
+      } else {
+        const cut = Math.min(16, w.height / 3);
+        ctx.beginPath(); ctx.moveTo(w.x + cut, w.y); ctx.lineTo(w.x + w.width - cut, w.y); ctx.lineTo(w.x + w.width, w.y + cut); ctx.lineTo(w.x + w.width, w.y + w.height - cut); ctx.lineTo(w.x + w.width - cut, w.y + w.height); ctx.lineTo(w.x + cut, w.y + w.height); ctx.lineTo(w.x, w.y + w.height - cut); ctx.lineTo(w.x, w.y + cut); ctx.closePath();
+        ctx.fillStyle = selected ? 'rgba(90,25,56,.94)' : 'rgba(11,28,72,.91)'; ctx.fill(); ctx.strokeStyle = '#79cbff'; ctx.stroke();
+      }
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.font = '600 11px "DM Sans", sans-serif'; ctx.fillStyle = selected ? '#ffc58b' : '#b5dcff';
-      ctx.fillText(w.prompt, w.x + w.width / 2, w.y + 18, w.width - 18);
-      const targetSize = Math.min(21, Math.max(14, 265 / Math.max(w.target.length, 9)));
-      ctx.font = `700 ${targetSize}px "DM Sans", sans-serif`; ctx.fillStyle = '#ffffff';
-      ctx.shadowColor = '#87caff'; ctx.shadowBlur = this.reducedEffects ? 0 : 8;
-      ctx.fillText(w.target, w.x + w.width / 2, w.y + 48, w.width - 20);
+      ctx.font = '700 14px "DM Sans", sans-serif'; ctx.fillStyle = hasCard ? '#493144' : '#bdefff';
+      ctx.fillText(w.prompt, w.x + w.width / 2, w.y + (hasCard && !floral ? 6 : 18), w.width - 24);
+      const targetSize = Math.min(hasCard ? 27 : 21, Math.max(14, 265 / Math.max(w.target.length, 9)));
+      ctx.font = `800 ${targetSize}px "DM Sans", sans-serif`;
+      const chars = Array.from(w.target); const typed = selected ? w.typedInput || '' : ''; const states = characterStates(w.target, typed);
+      const fullWidth = ctx.measureText(w.target).width; let cursor = w.x + (w.width - fullWidth) / 2;
+      ctx.textAlign = 'left';
+      chars.forEach((char, index) => { ctx.fillStyle = states[index] === 'correct' ? '#27bd6c' : states[index] === 'wrong' ? '#fa6570' : (hasCard && !floral ? '#30252a' : '#fff'); ctx.fillText(char, cursor, w.y + (hasCard && !floral ? 27 : 48)); cursor += ctx.measureText(char).width; });
       ctx.restore();
     }
 
@@ -561,10 +589,12 @@ export class GameEngine {
       ctx.save();
       const angle = Math.atan2(p.targetY - p.y1, p.targetX - p.x1);
       ctx.translate(p.x, p.y); ctx.rotate(angle);
-      ctx.globalAlpha = .42; ctx.fillStyle = p.color; ctx.shadowColor = p.color; ctx.shadowBlur = this.reducedEffects ? 0 : 22;
-      ctx.fillRect(-26, -3, 36, 6);
-      ctx.globalAlpha = 1; ctx.fillStyle = '#fff'; ctx.shadowBlur = 18;
-      ctx.beginPath(); ctx.ellipse(5, 0, 13, 4, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = .28; ctx.fillStyle = p.color; ctx.shadowColor = p.color; ctx.shadowBlur = this.reducedEffects ? 0 : 22;
+      ctx.beginPath(); ctx.moveTo(-75, 0); ctx.lineTo(-8, -7); ctx.lineTo(-8, 7); ctx.closePath(); ctx.fill();
+      ctx.globalAlpha = 1; ctx.fillStyle = '#e6ffff';
+      ctx.beginPath(); ctx.moveTo(-9,-5); ctx.lineTo(24,0); ctx.lineTo(-9,5); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#ffd46d'; ctx.fillRect(-14,-9,4,18); ctx.fillRect(-24,-2,11,4);
+      if (this.projectileSprite.complete && this.projectileSprite.naturalWidth) ctx.drawImage(this.projectileSprite, -79, -21, 122, 42);
       ctx.restore();
     }
 
@@ -586,14 +616,14 @@ export class GameEngine {
     }
 
     const cx = width / 2;
-    const shipY = height - 76;
+    const shipY = height - (this.themedArena ? Math.min(180, height * .20) : 76);
     const activeTarget = this.activeWords.find(w => !w.isHit);
     let aimX = cx; let aimY = 0;
     if (activeTarget) { aimX = activeTarget.x + activeTarget.width / 2; aimY = activeTarget.y + activeTarget.height / 2; }
     const angle = Math.atan2(aimY - shipY, aimX - cx);
-    ctx.save(); ctx.translate(cx, shipY); ctx.rotate(angle + Math.PI / 2);
+    ctx.save(); ctx.translate(cx, shipY); if (!this.themedArena) ctx.rotate(angle + Math.PI / 2);
     ctx.shadowColor = '#30cfff'; ctx.shadowBlur = this.reducedEffects ? 4 : 24;
-    if (this.shipSprite.complete && this.shipSprite.naturalWidth) ctx.drawImage(this.shipSprite, -48, -61, 96, 96);
+    if (this.shipSprite.complete && this.shipSprite.naturalWidth) ctx.drawImage(this.shipSprite, this.themedArena ? -95 : -48, this.themedArena ? -70 : -61, this.themedArena ? 190 : 96, this.themedArena ? 140 : 96);
     else {
       ctx.fillStyle = '#dcecff'; ctx.beginPath(); ctx.moveTo(0, -54); ctx.lineTo(33, 31); ctx.lineTo(0, 18); ctx.lineTo(-33, 31); ctx.closePath(); ctx.fill();
     }

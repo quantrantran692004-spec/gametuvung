@@ -1,3 +1,4 @@
+import { setFeedback } from './feedback-display.js';
 import { createElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { gsap } from 'gsap';
@@ -53,6 +54,8 @@ export class UIManager {
     this.gameReactRoot = null;
     this.gameRoot.replaceChildren();
     this.route = route;
+    document.body.dataset.page = route;
+    try { document.body.dataset.lobbyTheme = localStorage.getItem('word-shooter-lobby-theme') || 'meadow'; } catch { document.body.dataset.lobbyTheme = 'meadow'; }
     this.appShell.hidden = false;
     this.gameShell.hidden = true;
     document.body.classList.remove('game-active', 'menu-open');
@@ -74,11 +77,16 @@ export class UIManager {
     else if (route === 'progress') this.root.innerHTML = this.progressPage(data);
     else if (route === 'settings') this.root.innerHTML = this.settingsPage(data);
     else this.root.innerHTML = this.homePage(data);
+    if (route !== 'home') {
+      const back = document.createElement('button');
+      back.type = 'button'; back.className = 'page-back-button'; back.dataset.action = 'go-back';
+      back.textContent = '← Quay lại'; this.root.prepend(back);
+    }
   }
 
   updateProfile(profile, profiles) {
     const name = profile?.name || 'Người chơi';
-    const initial = Array.from(name.trim())[0]?.toUpperCase() || 'P';
+    const initial = profile?.avatar || Array.from(name.trim())[0]?.toUpperCase() || 'P';
     const shortName = name.length > 20 ? `${name.slice(0, 18)}…` : name;
     ['sidebar-profile-name', 'topbar-profile-name'].forEach(id => {
       const node = document.getElementById(id);
@@ -200,9 +208,9 @@ export class UIManager {
     const selected = (value, option) => value === option ? 'selected' : '';
     return `<section class="screen settings-screen"><header class="page-heading"><div><span class="eyebrow">LOADOUT / PLAYER SETTINGS</span><h1>Cấu hình trận</h1><p>Chỉnh nhịp rơi, số mạng sinh tồn và âm thanh của hồ sơ hiện tại.</p></div></header>
       <form id="settings-form" class="settings-list">
-        <section class="settings-section"><div class="settings-copy"><h2>Độ khó</h2><p>Điều chỉnh tốc độ từ rơi và số cơ hội trong chế độ sinh tồn.</p></div><div class="settings-fields"><label class="field"><span>Tốc độ rơi</span><select name="speed"><option value="slow" ${selected(settings.speed,'slow')}>Chậm</option><option value="normal" ${selected(settings.speed,'normal')}>Vừa</option><option value="fast" ${selected(settings.speed,'fast')}>Nhanh</option></select></label><div class="field-row"><label class="field"><span>Số mạng sinh tồn</span><select name="lives"><option value="3" ${selected(Number(settings.lives),3)}>3 mạng</option><option value="5" ${selected(Number(settings.lives),5)}>5 mạng</option><option value="7" ${selected(Number(settings.lives),7)}>7 mạng</option></select></label><label class="field"><span>Thời gian tính giờ</span><select name="timerDuration"><option value="45" ${selected(Number(settings.timerDuration),45)}>45 giây</option><option value="60" ${selected(Number(settings.timerDuration),60)}>60 giây</option><option value="90" ${selected(Number(settings.timerDuration),90)}>90 giây</option></select></label></div><label class="field"><span>Số từ trong một lượt luyện</span><select name="sessionSize"><option value="5" ${selected(Number(settings.sessionSize),5)}>5 từ</option><option value="10" ${selected(Number(settings.sessionSize),10)}>10 từ</option><option value="15" ${selected(Number(settings.sessionSize),15)}>15 từ</option></select></label></div></section>
+        <section class="settings-section"><div class="settings-copy"><h2>Độ khó</h2><p>Điều chỉnh tốc độ từ rơi và số cơ hội trong chế độ sinh tồn.</p></div><div class="settings-fields"><label class="field"><span>Thời gian chữ rơi (giây)</span><input type="number" name="fallSeconds" min="5" max="60" step="1" value="${Math.max(5, Math.min(60, Number(settings.fallSeconds) || ({slow:18, normal:14, fast:9}[settings.speed] || 14)))}"><small>Thời gian từ lúc xuất hiện đến khi chạm vạch: 5–60 giây.</small></label><label class="field"><span>Kích thước bàn phím điện thoại</span><select name="keyboardSize"><option value="normal" ${selected(settings.keyboardSize || 'normal','normal')}>Vừa</option><option value="large" ${selected(settings.keyboardSize,'large')}>Lớn</option><option value="extra" ${selected(settings.keyboardSize,'extra')}>Rất lớn</option></select></label><div class="field-row"><label class="field"><span>Số mạng sinh tồn</span><input type="number" name="lives" min="1" max="20" step="1" required value="${Math.max(1, Math.min(20, Number(settings.lives) || 5))}"><small>Từ 1 đến 20 mạng.</small></label><label class="field"><span>Thời gian tính giờ</span><input type="number" name="timerDuration" min="10" max="3600" step="1" required value="${Math.max(10, Math.min(3600, Number(settings.timerDuration) || 60))}"><small>Từ 10 đến 3.600 giây.</small></label></div><label class="field"><span>Số từ trong một lượt luyện</span><input type="number" name="sessionSize" min="1" max="1000" step="1" required value="${Math.max(1, Math.min(1000, Number(settings.sessionSize) || 10))}"><small>Nhập từ 1 đến 1.000 từ; nếu kho có ít hơn, trò chơi dùng số từ hiện có.</small></label></div></section>
         <section class="settings-section"><div class="settings-copy"><h2>Gợi ý & đáp án</h2><p>Mỗi mục tiêu đọc tiếng Anh; nghĩa tiếng Việt hiện trên từ đang rơi.</p></div><div class="settings-fields"><p class="settings-hint">Nghe từ tiếng Anh · gõ đúng từ đó · phá mục tiêu trước khi chạm vạch.</p><label class="switch-row"><span class="switch-copy"><strong>Cho phép sai một ký tự</strong><small>Nhận đáp án gần đúng cho từ dài từ 4 ký tự trở lên.</small></span><span class="switch"><input type="checkbox" name="acceptTypos" ${checked(settings.acceptTypos,true)}><span></span></span></label></div></section>
-        <section class="settings-section"><div class="settings-copy"><h2>Âm thanh</h2><p>Từ tiếng Anh được đọc khi mục tiêu xuất hiện; có thể nghe lại bất cứ lúc nào.</p></div><div class="settings-fields"><label class="switch-row"><span class="switch-copy"><strong>Đọc từ mục tiêu tự động</strong><small>Dùng giọng đọc tiếng Anh có sẵn trên thiết bị.</small></span><span class="switch"><input type="checkbox" name="voiceEnabled" ${checked(settings.voiceEnabled,true)}><span></span></span></label><label class="switch-row"><span class="switch-copy"><strong>Hiệu ứng âm thanh</strong><small>Âm báo ngắn khi bắn trúng, hụt hoặc lên cấp vũ khí.</small></span><span class="switch"><input type="checkbox" name="soundEnabled" ${checked(settings.soundEnabled,true)}><span></span></span></label><label class="switch-row"><span class="switch-copy"><strong>Giảm hiệu ứng</strong><small>Giảm số hạt và ánh sáng để máy yếu chạy mượt hơn.</small></span><span class="switch"><input type="checkbox" name="reducedEffects" ${checked(settings.reducedEffects,false)}><span></span></span></label><div class="field-row"><label class="field"><span>Tốc độ đọc</span><select name="voiceRate"><option value="0.72" ${selected(Number(settings.voiceRate),0.72)}>Chậm, rõ</option><option value="0.9" ${selected(Number(settings.voiceRate),0.9)}>Tự nhiên</option><option value="1.05" ${selected(Number(settings.voiceRate),1.05)}>Nhanh</option></select></label><div class="field"><span>Kiểm tra</span><button class="button button-quiet button-small" type="button" data-action="test-voice">${icons.volume} Nghe thử</button></div></div></div></section>
+        <section class="settings-section"><div class="settings-copy"><h2>Âm thanh</h2><p>Từ tiếng Anh được đọc khi mục tiêu xuất hiện; có thể nghe lại bất cứ lúc nào.</p></div><div class="settings-fields"><label class="switch-row"><span class="switch-copy"><strong>Đọc từ mục tiêu tự động</strong><small>Dùng giọng đọc tiếng Anh có sẵn trên thiết bị.</small></span><span class="switch"><input type="checkbox" name="voiceEnabled" ${checked(settings.voiceEnabled,true)}><span></span></span></label><label class="switch-row"><span class="switch-copy"><strong>Hiệu ứng âm thanh</strong><small>Âm báo ngắn khi bắn trúng, hụt hoặc lên cấp vũ khí.</small></span><span class="switch"><input type="checkbox" name="soundEnabled" ${checked(settings.soundEnabled,true)}><span></span></span></label><label class="switch-row"><span class="switch-copy"><strong>Giảm hiệu ứng</strong><small>Giảm số hạt và ánh sáng để máy yếu chạy mượt hơn.</small></span><span class="switch"><input type="checkbox" name="reducedEffects" ${checked(settings.reducedEffects,false)}><span></span></span></label><label class="field"><span>Giọng đọc tiếng Anh</span><select name="voiceName" id="voice-select"><option value="">Giọng mặc định của thiết bị</option></select><small>Danh sách giọng phụ thuộc vào thiết bị và trình duyệt.</small></label><div class="field-row"><label class="field"><span>Tốc độ đọc</span><input type="number" name="voiceRate" min="0.45" max="1.15" step="0.01" required value="${Math.max(0.45, Math.min(1.15, Number(settings.voiceRate) || 0.72))}"><small>0,45 chậm đến 1,15 nhanh.</small></label><div class="field"><span>Kiểm tra</span><button class="button button-quiet button-small" type="button" data-action="test-voice">${icons.volume} Nghe thử</button></div></div></div></section>
         <div class="settings-actions"><button class="button button-primary" type="submit">Lưu cài đặt</button></div>
       </form></section>`;
   }
@@ -234,9 +242,9 @@ export class UIManager {
     const progressLabel = document.getElementById('hud-progress-label');
     const lives = document.getElementById('hud-lives');
     const progressValue = document.getElementById('hud-progress-value');
-    if (score) score.textContent = Number(state.score || 0).toLocaleString('vi-VN');
-    if (combo) combo.textContent = `${Number(state.combo || 0)}×`;
-    if (time) time.textContent = state.timeLabel || '∞';
+    if (score && state.score !== undefined) score.textContent = Number(state.score).toLocaleString('vi-VN');
+    if (combo && state.combo !== undefined) combo.textContent = `${Number(state.combo)}×`;
+    if (time && state.timeLabel !== undefined) time.textContent = state.timeLabel || '∞';
     if (progressLabel) progressLabel.textContent = state.progressLabel || '';
     if (progress) progress.style.width = `${Math.max(0, Math.min(100, Number(state.progress || 0)))}%`;
     if (progressValue && state.progressPercent !== undefined) progressValue.textContent = `${state.progressPercent}%`;
@@ -249,15 +257,9 @@ export class UIManager {
   setGameFeedback(message, kind = '') {
     const node = document.getElementById('game-feedback');
     if (!node) return;
-    node.textContent = message || '';
+    gsap.killTweensOf(node);
     const state = kind === 'correct' ? 'good' : kind === 'wrong' ? 'bad' : kind;
-    node.className = `game-feedback ${message ? 'is-visible' : ''} ${state ? `is-${state}` : ''}`;
-    if (message) {
-      gsap.killTweensOf(node);
-      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) gsap.fromTo(node, { autoAlpha: 0 }, { autoAlpha: 1, duration: .18, ease: 'power2.out' });
-      clearTimeout(this.feedbackTimer);
-      this.feedbackTimer = setTimeout(() => { node.className = 'game-feedback'; }, 850);
-    }
+    setFeedback(node, message, state);
   }
 
   showPause(onResume) {

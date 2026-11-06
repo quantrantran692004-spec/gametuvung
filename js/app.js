@@ -1,3 +1,4 @@
+import { parseBulkWords } from './bulk-words.js';
 import { db } from './db.js?v=31';
 import { profileManager } from './profile-manager.js?v=31';
 import { vocabManager } from './vocab-manager.js?v=31';
@@ -9,7 +10,7 @@ import { SpacedRepetition } from './spaced-repetition.js?v=31';
 import { audioManager } from './audio-manager.js?v=31';
 
 class App {
-  constructor() { this.game = null; this.mode = 'survival'; this.pool = 'all'; this.startedAt = 0; }
+  constructor() { this.game = null; this.mode = 'survival'; this.pool = 'all'; this.startedAt = 0; this.currentRoute = 'home'; this.routeStack = []; }
 
   async init() {
     try {
@@ -36,7 +37,9 @@ class App {
     document.addEventListener('click', event => this.handleClick(event));
     document.addEventListener('submit', event => this.handleSubmit(event));
     document.addEventListener('input', event => this.handleInput(event));
+    document.addEventListener('compositionend', event => { if (event.target.id === 'game-input') { const input = event.target; window.setTimeout(() => { if (input.isConnected && input.value) this.handleInput({ target: input, isComposing: false }); }, 0); } });
     document.addEventListener('change', event => this.handleChange(event));
+    window.speechSynthesis?.addEventListener('voiceschanged', () => this.populateVoices());
     document.addEventListener('keydown', event => {
       if (event.key === 'Escape' && this.game?.isRunning) this.pauseGame();
       if (event.key === 'Tab' && this.game?.isRunning && !this.game.isPaused) {
@@ -49,9 +52,7 @@ class App {
     const profile = profileManager.getCurrentProfile();
     const words = vocabManager.getAll();
     const stats = await statsManager.getProfileStats(profile.id);
-    const sessions = stats.recentSessions || [];
-    const today = new Date().toDateString();
-    const todayWords = sessions.filter(item => new Date(item.playedAt).toDateString() === today).reduce((sum, item) => sum + (item.wordsShot || 0), 0);
+    const todayWords = stats.todayWords || 0;
     const masteryCounts = Array.from({ length: 6 }, (_, level) => words.filter(word => Math.min(5, Number(word.masteryLevel) || 0) === level).length);
     const visibleWords = words.filter(word => {
       const query = uiManager.libraryQuery.trim().toLowerCase();
@@ -62,10 +63,23 @@ class App {
     return { profile, profiles: profileManager.profiles, settings: profile.settings || {}, words, visibleWords, stats, dueWords: SpacedRepetition.getDueWords(words), todayWords, masteryCounts };
   }
 
-  async navigate(route) {
+  async navigate(route, remember = true) {
+    if (remember && route !== this.currentRoute) this.routeStack.push(this.currentRoute);
+    this.currentRoute = route;
     const state = await this.snapshot();
     uiManager.showRoute(route, state);
+    if (route === 'settings') this.populateVoices();
     if (route === 'vocabulary') document.querySelector('#library-search')?.focus({ preventScroll: true });
+  }
+
+  populateVoices() {
+    const select = document.getElementById('voice-select');
+    if (!select) return;
+    const selected = select.value || profileManager.getCurrentProfile()?.settings?.voiceName || '';
+    select.replaceChildren(new Option('Giọng mặc định của thiết bị', ''));
+    for (const voice of audioManager.getEnglishVoices()) select.add(new Option(`${voice.name} (${voice.lang})`, voice.name));
+    if (selected && !Array.from(select.options).some(option => option.value === selected)) select.add(new Option(`${selected} (không có trên thiết bị này)`, selected));
+    select.value = selected;
   }
 
   async handleClick(event) {
@@ -74,6 +88,7 @@ class App {
     const button = event.target.closest('[data-action]');
     if (!button) return;
     const action = button.dataset.action;
+    if (action === 'go-back') { await this.navigate(this.routeStack.pop() || 'home', false); return; }
     if (action === 'toggle-menu') {
       document.body.classList.toggle('menu-open');
       button.setAttribute('aria-expanded', document.body.classList.contains('menu-open'));
@@ -82,6 +97,7 @@ class App {
       this.pool = button.dataset.pool || 'all';
       uiManager.selectedMode = this.mode;
       uiManager.pool = this.pool;
+      const lessonChoice = document.getElementById('lesson-choice'); if (lessonChoice) lessonChoice.hidden = this.pool !== 'lesson';
       document.querySelectorAll('[data-action="select-mode"]').forEach(node => {
         const active = node.dataset.mode === this.mode && (node.dataset.pool || 'all') === this.pool;
         node.classList.toggle('is-selected', active);
@@ -98,6 +114,7 @@ class App {
     else if (action === 'replay-word') { const target = this.game?.activeWords?.find(item => item.id === this.game.selectedTargetId) || this.game?.activeWords?.find(item => !item.isHit); if (target) audioManager.speak(target.target, 'en-US'); }
     else if (action === 'go-vocabulary') await this.navigate('vocabulary');
     else if (action === 'add-word') this.openWordDialog();
+    else if (action === 'open-bulk-words') { document.getElementById('word-dialog')?.close(); document.getElementById('bulk-word-dialog')?.showModal(); document.querySelector('#bulk-word-form textarea')?.focus(); }
     else if (action === 'close-dialog') button.closest('dialog')?.close();
     else if (action === 'import-words') document.getElementById('file-import-input')?.click();
     else if (action === 'export-words') this.exportWords();
@@ -105,7 +122,7 @@ class App {
     else if (action === 'delete-word') await this.deleteWord(button.dataset.wordId);
     else if (action === 'open-profiles') document.getElementById('profile-dialog')?.showModal();
     else if (action === 'switch-profile') await this.switchProfile(button.dataset.profileId);
-    else if (action === 'test-voice') { audioManager.voiceEnabled = true; audioManager.speak('Ready. Type the word before it falls.', 'en-US'); }
+    else if (action === 'test-voice') { const form = document.getElementById('settings-form'); const enabled = audioManager.voiceEnabled; const name = audioManager.voiceName; const rate = audioManager.voiceRate; if (form) audioManager.setVoice(form.elements.voiceName.value, form.elements.voiceRate.value); audioManager.voiceEnabled = true; audioManager.speak('Ready. Type the word before it falls.', 'en-US'); audioManager.voiceEnabled = enabled; audioManager.setVoice(name, rate); }
   }
 
   async handleSubmit(event) {
@@ -124,6 +141,15 @@ class App {
       const values = Object.fromEntries(new FormData(form));
       await vocabManager.addWord(values); form.reset(); form.closest('dialog').close();
       uiManager.showToast(`Đã thêm “${values.english}” vào kho từ.`, 'success'); await this.navigate('vocabulary');
+    } else if (form.id === 'bulk-word-form') {
+      event.preventDefault();
+      const { words, invalidLines } = parseBulkWords(form.elements.words.value);
+      const error = document.getElementById('bulk-word-error');
+      if (invalidLines.length || !words.length) { error.textContent = invalidLines.length ? `Kiểm tra dòng ${invalidLines.join(', ')}: mỗi dòng cần có từ và nghĩa.` : 'Hãy nhập ít nhất một từ và nghĩa.'; error.hidden = false; return; }
+      error.hidden = true;
+      const added = await vocabManager.addMultipleWords(words);
+      form.reset(); form.closest('dialog').close();
+      uiManager.showToast(`Đã thêm ${added.length} từ vào kho.`, 'success'); await this.navigate('vocabulary');
     } else if (form.id === 'profile-form') {
       event.preventDefault(); const values = new FormData(form);
       await profileManager.createProfile(values.get('name')); form.reset(); form.closest('dialog').close();
@@ -134,6 +160,7 @@ class App {
       ['acceptTypos', 'voiceEnabled', 'soundEnabled', 'reducedEffects'].forEach(key => settings[key] = form.elements[key].checked);
       ['lives', 'timerDuration', 'sessionSize'].forEach(key => settings[key] = Number(settings[key]));
       settings.voiceRate = Number(settings.voiceRate);
+      settings.fallSeconds = Math.max(5, Math.min(60, Number(settings.fallSeconds) || 14));
       await profileManager.updateSettings(settings); this.applyAudioSettings(profileManager.getCurrentProfile().settings);
       uiManager.showToast('Đã lưu cài đặt cho hồ sơ này.', 'success'); await this.navigate('settings');
     }
@@ -141,7 +168,8 @@ class App {
 
   handleInput(event) {
     if (event.target.id === 'game-input' && this.game?.isRunning && !this.game.isPaused) {
-      this.game.updateTypingProgress(event.target.value);
+      if (event.isComposing || event.inputType === 'insertCompositionText') return;
+      if (this.game.updateTypingProgress(event.target.value)) event.target.value = '';
     } else if (event.target.id === 'library-search') {
       uiManager.libraryQuery = event.target.value;
       this.snapshot().then(state => uiManager.renderWordResults(state.visibleWords));
@@ -159,19 +187,24 @@ class App {
 
   async startGame() {
     const settings = profileManager.getCurrentProfile().settings || {};
-    let words = vocabManager.getGameWords(Number(settings.sessionSize) || 10, this.pool);
+    const lessonUnit = document.getElementById('lesson-unit')?.value || '';
+    let words = this.pool === 'lesson'
+      ? vocabManager.getAll().filter(word => (String(word.unit || 'General').trim() || 'General') === lessonUnit).sort(() => Math.random() - 0.5).slice(0, Number(settings.sessionSize) || 10)
+      : vocabManager.getGameWords(Number(settings.sessionSize) || 10, this.pool);
     if (this.mode === 'survival' || this.mode === 'practice' || this.mode === 'timed') {
-      if (!words.length) { uiManager.showToast('Thêm ít nhất một từ để bắt đầu.', 'error'); await this.navigate('vocabulary'); return; }
+      if (!words.length) { uiManager.showToast(this.pool === 'review' ? 'Không có từ cần ôn trong kho.' : this.pool === 'lesson' ? 'Bài học này chưa có từ.' : 'Thêm ít nhất một từ để bắt đầu.', 'error'); await this.navigate('vocabulary'); return; }
     }
     this.destroyGame();
     const configuredLives = Number(settings.lives) || 5;
-    await uiManager.startGame(profileManager.getCurrentProfile(), { remaining: words.length, progress: 0, progressLabel: `${words.length} từ trong lượt`, timeLabel: this.mode === 'timed' ? `${settings.timerDuration || 60}s` : '', score: 0, combo: 0, lives: configuredLives, maxLives: this.mode === 'survival' ? configuredLives : undefined }, { poolLabel: this.pool === 'all' ? 'Kho từ' : this.pool === 'review' ? 'Từ cần ôn' : 'Từ yêu thích', modeLabel: { survival: 'Sinh tồn', timed: '60 giây', practice: 'Luyện tập' }[this.mode] || 'Sinh tồn', reducedEffects: settings.reducedEffects === true });
+    await uiManager.startGame(profileManager.getCurrentProfile(), { remaining: words.length, progress: 0, progressLabel: `${words.length} từ trong lượt`, timeLabel: this.mode === 'timed' ? `${settings.timerDuration || 60}s` : '', score: 0, combo: 0, lives: configuredLives, maxLives: this.mode === 'survival' ? configuredLives : undefined }, { poolLabel: this.pool === 'lesson' ? lessonUnit : this.pool === 'all' ? 'Kho từ' : this.pool === 'review' ? 'Từ cần ôn' : 'Từ yêu thích', modeLabel: { survival: 'Sinh tồn', timed: `${Number(settings.timerDuration) || 60} giây`, practice: 'Luyện tập' }[this.mode] || 'Sinh tồn', reducedEffects: settings.reducedEffects === true });
+    const keyboard = document.querySelector('.virtual-keyboard');
+    if (keyboard) keyboard.dataset.size = settings.keyboardSize || 'normal';
     const canvas = document.getElementById('game-canvas');
     const gameInput = document.getElementById('game-input');
-    if (gameInput) gameInput.readOnly = window.matchMedia('(max-width: 720px)').matches;
+    if (gameInput) gameInput.readOnly = window.matchMedia('(pointer: coarse)').matches;
     this.startedAt = Date.now();
     this.game = new GameEngine(canvas, {
-      lives: Number(settings.lives) || 5, speed: settings.speed || 'normal', duration: Number(settings.timerDuration) || 60,
+      lives: Number(settings.lives) || 5, speed: settings.speed || 'normal', fallSeconds: Number(settings.fallSeconds) || ({ slow: 18, normal: 14, fast: 9 }[settings.speed] || 14), duration: Number(settings.timerDuration) || 60,
       wordDirection: 'en-vi', autoSpeak: settings.voiceEnabled === true, voiceEnabled: settings.voiceEnabled === true,
       acceptTypos: settings.acceptTypos !== false, caseSensitive: false, missPenalty: 15,
       reducedEffects: settings.reducedEffects === true,
@@ -179,7 +212,7 @@ class App {
       onAnswerFeedback: feedback => {
         if (feedback.correct) {
           const input = document.getElementById('game-input'); if (input) input.value = '';
-          uiManager.setGameFeedback(feedback.upgraded ? 'Trúng đích! Súng đã nâng cấp.' : 'Trúng đích!', 'correct');
+          uiManager.setGameFeedback('');
         } else {
           if (feedback.autoMiss) { const input = document.getElementById('game-input'); if (input) input.value = ''; }
           uiManager.setGameFeedback('Từ đã chạm vạch — giữ nhịp nhé.', 'wrong');
