@@ -156,3 +156,4 @@ export class VocabManager {
 }
 
 export const vocabManager = new VocabManager();
+

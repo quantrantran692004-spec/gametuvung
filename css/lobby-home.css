@@ -231,3 +231,4 @@ body[data-lobby-theme="meadow"]:not(.home-lobby):not(.game-active) .progress-sum
 body[data-lobby-theme="meadow"]:not(.home-lobby):not(.game-active) .progress-stat,body[data-lobby-theme="academy"]:not(.home-lobby):not(.game-active) .progress-stat{padding:16px}
 @media(max-width:760px){body:not(.home-lobby):not(.game-active) .collection-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}body:not(.home-lobby):not(.game-active) .word-card{padding:12px;min-height:155px}body:not(.home-lobby):not(.game-active) .word-card .word-en{font-size:18px}}
 @media(max-width:390px){body:not(.home-lobby):not(.game-active) .collection-grid{grid-template-columns:1fr}}
+

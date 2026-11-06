@@ -43,3 +43,4 @@ export class StatsManager {
 }
 
 export const statsManager = new StatsManager();
+
