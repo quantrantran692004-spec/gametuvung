@@ -23,6 +23,8 @@ const modes = [
 export default function HomeLobby({ data, selectedMode, pool }: Props) {
   const [theme, setTheme] = useState(() => { try { return localStorage.getItem('word-shooter-lobby-theme') || 'meadow'; } catch { return 'meadow'; } });
   const changeTheme = (value: string) => { setTheme(value); try { localStorage.setItem('word-shooter-lobby-theme', value); } catch { /* The theme remains active for this session. */ } };
+  const [gameTheme, setGameTheme] = useState(() => { try { return localStorage.getItem('word-shooter-game-theme') || '0'; } catch { return '0'; } });
+  const changeGameTheme = (value: string) => { setGameTheme(value); try { localStorage.setItem('word-shooter-game-theme', value); } catch { /* Session only. */ } };
   const profileName = data.profile?.name || 'người chơi';
   const dueCount = data.dueWords?.length || 0;
   const totalWords = data.words?.length || 0;
@@ -49,6 +51,7 @@ export default function HomeLobby({ data, selectedMode, pool }: Props) {
         </button>
         <div className="lobby-tools">
           <label className="lobby-theme-picker"><span>Giao diện</span><select aria-label="Chọn giao diện trang chủ" value={theme} onChange={event => changeTheme(event.target.value)}><option value="meadow">Vườn từ vựng</option><option value="academy">Học viện</option><option value="space">Không gian</option></select></label>
+          <label className="lobby-theme-picker"><span>Màn chơi</span><select aria-label="Chọn giao diện màn chơi" value={gameTheme} onChange={event => changeGameTheme(event.target.value)}><option value="0">Không gian mặc định</option>{['Tiên sơn','Đào tiên','Trúc lâm','Tiên giới 3D','Thủy mặc','Chibi','Điện ảnh','Cung đình','Cực quang','Biển trời'].map((name, index) => <option key={name} value={String(index + 1)}>{name}</option>)}</select></label>
           <span className="lobby-daily"><span>✦</span><b>{dailyCount}</b><small>TỪ HÔM NAY</small></span>
           <motion.button className="lobby-icon-button" type="button" data-action="test-voice" aria-label="Kiểm tra âm thanh" whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}>◖))</motion.button>
           <motion.button className="lobby-icon-button" type="button" data-route="settings" aria-label="Cài đặt" whileHover={{ rotate: 14 }} whileTap={{ scale: 0.94 }}>⚙</motion.button>
@@ -92,4 +95,3 @@ export default function HomeLobby({ data, selectedMode, pool }: Props) {
     </section>
   );
 }
-

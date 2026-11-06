@@ -7,6 +7,9 @@ type Props = { profile?: { name?: string }; state: Record<string, any>; options:
 const rows = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm'];
 
 export default function GameScreen({ profile, state, options }: Props) {
+  let gameTheme = '0';
+  try { gameTheme = localStorage.getItem('word-shooter-game-theme') || '0'; } catch { /* Default. */ }
+  if (!/^(?:[0-9]|10)$/.test(gameTheme)) gameTheme = '0';
   const arenaRef = useRef<HTMLDivElement>(null);
   const pixiMountRef = useRef<HTMLDivElement>(null);
 
@@ -63,11 +66,12 @@ export default function GameScreen({ profile, state, options }: Props) {
   );
 
   return (
-    <section className="game-screen" aria-label="Lượt chơi WORD SHOOTER">
+    <section className="game-screen" data-game-theme={gameTheme} aria-label="Lượt chơi WORD SHOOTER">
       <div className="game-playfield">
         <div className="arena-wrap" id="arena-wrap" ref={arenaRef}>
           <canvas id="game-canvas" aria-label="Từ vựng rơi xuống sân chơi" />
           <div className="pixi-stage" id="pixi-stage" ref={pixiMountRef} aria-hidden="true" />
+          <div className="game-scene-brand" aria-label="WORD SHOOTER"><b>WORD<br/><em>SHOOTER</em></b><small>HỌC TỪ VỰNG · TU TIÊN</small></div>
           <div className="game-status-row">
             <div className="hud-card hud-score"><span>ĐIỂM</span><strong id="hud-score">0</strong></div>
             <div className="hud-card hud-hp"><span>HP</span><strong className="hud-lives" id="hud-lives" aria-label="Mạng còn lại" /></div>

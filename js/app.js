@@ -1,3 +1,4 @@
+import { parseBulkWords } from './bulk-words.js';
 import { db } from './db.js?v=31';
 import { profileManager } from './profile-manager.js?v=31';
 import { vocabManager } from './vocab-manager.js?v=31';
@@ -113,6 +114,7 @@ class App {
     else if (action === 'replay-word') { const target = this.game?.activeWords?.find(item => item.id === this.game.selectedTargetId) || this.game?.activeWords?.find(item => !item.isHit); if (target) audioManager.speak(target.target, 'en-US'); }
     else if (action === 'go-vocabulary') await this.navigate('vocabulary');
     else if (action === 'add-word') this.openWordDialog();
+    else if (action === 'open-bulk-words') { document.getElementById('word-dialog')?.close(); document.getElementById('bulk-word-dialog')?.showModal(); document.querySelector('#bulk-word-form textarea')?.focus(); }
     else if (action === 'close-dialog') button.closest('dialog')?.close();
     else if (action === 'import-words') document.getElementById('file-import-input')?.click();
     else if (action === 'export-words') this.exportWords();
@@ -139,6 +141,15 @@ class App {
       const values = Object.fromEntries(new FormData(form));
       await vocabManager.addWord(values); form.reset(); form.closest('dialog').close();
       uiManager.showToast(`Đã thêm “${values.english}” vào kho từ.`, 'success'); await this.navigate('vocabulary');
+    } else if (form.id === 'bulk-word-form') {
+      event.preventDefault();
+      const { words, invalidLines } = parseBulkWords(form.elements.words.value);
+      const error = document.getElementById('bulk-word-error');
+      if (invalidLines.length || !words.length) { error.textContent = invalidLines.length ? `Kiểm tra dòng ${invalidLines.join(', ')}: mỗi dòng cần có từ và nghĩa.` : 'Hãy nhập ít nhất một từ và nghĩa.'; error.hidden = false; return; }
+      error.hidden = true;
+      const added = await vocabManager.addMultipleWords(words);
+      form.reset(); form.closest('dialog').close();
+      uiManager.showToast(`Đã thêm ${added.length} từ vào kho.`, 'success'); await this.navigate('vocabulary');
     } else if (form.id === 'profile-form') {
       event.preventDefault(); const values = new FormData(form);
       await profileManager.createProfile(values.get('name')); form.reset(); form.closest('dialog').close();
@@ -190,7 +201,7 @@ class App {
     if (keyboard) keyboard.dataset.size = settings.keyboardSize || 'normal';
     const canvas = document.getElementById('game-canvas');
     const gameInput = document.getElementById('game-input');
-    if (gameInput) gameInput.readOnly = window.matchMedia('(max-width: 720px)').matches;
+    if (gameInput) gameInput.readOnly = window.matchMedia('(pointer: coarse)').matches;
     this.startedAt = Date.now();
     this.game = new GameEngine(canvas, {
       lives: Number(settings.lives) || 5, speed: settings.speed || 'normal', fallSeconds: Number(settings.fallSeconds) || ({ slow: 18, normal: 14, fast: 9 }[settings.speed] || 14), duration: Number(settings.timerDuration) || 60,
@@ -270,4 +281,3 @@ class App {
 const app = new App();
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => app.init(), { once: true });
 else void app.init();
-

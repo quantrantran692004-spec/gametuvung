@@ -1,8 +1,34 @@
+// @ts-ignore shared theme data
+import { getGameTheme } from '../../js/game-themes.js';
+// @ts-ignore JS helper shared with engine tests
+import { characterStates } from '../../js/typing-feedback.js';
 import { Application, Assets, Container, Graphics, Sprite, Text, type Texture } from 'pixi.js';
+import projectileAsset from '../../assets/game-themes/projectile.webp';
 import shipAsset from '../../assets/player-starfighter.webp';
+import swordAsset from '../../assets/game-themes/flying-sword.webp';
+import ornateFlyingSword from '../../assets/game-themes/flying-ornate.webp';
+import ornateCardAsset from '../../assets/game-themes/word-ornate.webp';
+import player1 from '../../assets/game-themes/player-1.webp';
+import player3 from '../../assets/game-themes/player-3.webp';
+import player4 from '../../assets/game-themes/player-4.webp';
+import player5 from '../../assets/game-themes/player-5.webp';
+import player6 from '../../assets/game-themes/player-6.webp';
+import player7 from '../../assets/game-themes/player-7.webp';
+import player8 from '../../assets/game-themes/player-8.webp';
+import player9 from '../../assets/game-themes/player-9.webp';
+import player10 from '../../assets/game-themes/player-10.webp';
+import card1 from '../../assets/game-themes/card-1.webp';
+import card3 from '../../assets/game-themes/card-3.webp';
+import card4 from '../../assets/game-themes/card-4.webp';
+import card5 from '../../assets/game-themes/card-5.webp';
+import card6 from '../../assets/game-themes/card-6.webp';
+import card7 from '../../assets/game-themes/card-7.webp';
+import card8 from '../../assets/game-themes/card-8.webp';
+import card9 from '../../assets/game-themes/card-9.webp';
+import card10 from '../../assets/game-themes/card-10.webp';
 
 type PointParticle = { x: number; y: number; life: number; size?: number; color: string };
-type WordTarget = { id: string; x: number; y: number; width: number; height: number; prompt: string; target: string; isHit?: boolean };
+type WordTarget = { id: string; x: number; y: number; width: number; height: number; prompt: string; target: string; typedInput?: string; isHit?: boolean };
 type EngineFrame = {
   canvas: HTMLCanvasElement;
   activeWords: WordTarget[];
@@ -12,17 +38,22 @@ type EngineFrame = {
   muzzleFlashes: Array<{ x: number; y: number; life: number; color: string }>;
   scorePopups: Array<{ x: number; y: number; life: number; text: string }>;
 };
-type WordVisual = { root: Container; beam: Graphics; body: Graphics; prompt: Text; answer: Text };
+type WordVisual = { root: Container; beam: Graphics; body: Graphics; prompt: Text; answer: Text; letters: Container; art: Sprite | null; letterKey: string };
 
 type Star = { node: Graphics; speed: number; phase: number };
 
 export default class PixiGameScene {
   private app: Application;
   private reduced: boolean;
+  private theme = getGameTheme('0');
   private words = new Map<string, WordVisual>();
   private stars: Star[] = [];
   private ship: Sprite | null = null;
+  private cardTexture: Texture | null = null;
+  private floral = false;
   private boltPool: Graphics[] = [];
+  private projectileTexture: Texture | null = null;
+  private projectileSprites: Sprite[] = [];
   private particlePool: Graphics[] = [];
   private flashPool: Graphics[] = [];
   private scorePool: Text[] = [];
@@ -33,11 +64,19 @@ export default class PixiGameScene {
   }
 
   async initialize() {
-    const texture = await Assets.load<Texture>(shipAsset);
+    let theme = '0';
+    try { theme = localStorage.getItem('word-shooter-game-theme') || '0'; } catch { /* Default. */ }
+    this.theme = getGameTheme(theme);
+    this.projectileTexture = await Assets.load<Texture>(projectileAsset);
+    this.floral = ['1', '2', '3'].includes(theme);
+    const cardAssets: Record<string, string> = { '1': card1, '2': ornateCardAsset, '3': card3, '4': card4, '5': card5, '6': card6, '7': card7, '8': card8, '9': card9, '10': card10 };
+    if (cardAssets[theme]) this.cardTexture = await Assets.load<Texture>(cardAssets[theme]);
+    const players: Record<string, string> = { '1': player1, '2': ornateFlyingSword, '3': player3, '4': player4, '5': player5, '6': player6, '7': player7, '8': player8, '9': player9, '10': player10 };
+    const texture = await Assets.load<Texture>(players[theme] || (theme === '0' ? shipAsset : swordAsset));
     this.ship = new Sprite(texture);
     this.ship.anchor.set(0.5);
-    this.ship.width = 106;
-    this.ship.height = 104;
+    this.ship.width = theme === '0' ? 106 : (Number(theme) <= 6 ? 220 : 110);
+    this.ship.height = theme === '0' ? 104 : (Number(theme) <= 6 ? 148 : 160);
     this.app.stage.addChild(this.ship);
 
     const starCount = this.reduced ? 20 : 58;
@@ -60,9 +99,13 @@ export default class PixiGameScene {
     const answer = new Text({ text: word.target, style: { fontFamily: 'DM Sans, sans-serif', fontSize: 20, fontWeight: '700', fill: 0xffffff, align: 'center' } });
     prompt.anchor.set(0.5);
     answer.anchor.set(0.5);
-    root.addChild(beam, body, prompt, answer);
+    const letters = new Container();
+    const art = this.cardTexture ? new Sprite(this.cardTexture) : null;
+    root.addChild(beam, body);
+    if (art) root.addChild(art);
+    root.addChild(prompt, answer, letters);
     this.app.stage.addChild(root);
-    return { root, beam, body, prompt, answer };
+    return { root, beam, body, prompt, answer, letters, art, letterKey: '' };
   }
 
   private graphicAt(pool: Graphics[], index: number) {
@@ -100,7 +143,8 @@ export default class PixiGameScene {
       const visual = this.words.get(word.id) || this.createWord(word);
       this.words.set(word.id, visual);
       const selected = word.id === frame.selectedTargetId;
-      const glow = selected ? 0xff765d : 0x65c9ff;
+      const themed = this.theme.name !== "Mặc định";
+      const glow = selected ? (themed ? 0x38ba85 : 0xff765d) : this.theme.accent;
       const x = word.x;
       const y = word.y;
       const cut = Math.min(14, word.height / 3);
@@ -108,16 +152,40 @@ export default class PixiGameScene {
       visual.beam.clear();
       visual.beam.moveTo(word.width / 2, -49).lineTo(word.width / 2, 0).stroke({ color: glow, width: 2, alpha: selected ? 0.68 : 0.36 });
       visual.body.clear();
+      if (visual.art) { visual.art.position.set(-16, -22); visual.art.width = word.width + 32; visual.art.height = word.height + 45; }
+      if (!visual.art) {
       visual.body.roundRect(-2, -2, word.width + 4, word.height + 4, cut + 3).stroke({ color: glow, width: 2, alpha: selected ? 0.65 : 0.32 });
-      visual.body.roundRect(0, 0, word.width, word.height, cut).fill({ color: selected ? 0x4a203e : 0x0d1c4a, alpha: 0.95 }).stroke({ color: glow, width: selected ? 2.2 : 1.5, alpha: 0.98 });
-      visual.body.roundRect(5, 4, word.width - 10, 22, 8).fill({ color: 0xffffff, alpha: 0.06 });
+      visual.body.roundRect(0, 0, word.width, word.height, cut).fill({ color: themed ? this.theme.card : (selected ? 0x4a203e : 0x0d1c4a), alpha: 0.97 }).stroke({ color: glow, width: selected ? 2.2 : 1.5, alpha: 0.98 });
+      visual.body.roundRect(5, 4, word.width - 10, 22, 8).fill({ color: 0xffffff, alpha: themed ? 0.22 : 0.06 });
+      if (themed) {
+        visual.body.roundRect(4, 4, word.width - 8, word.height - 8, Math.max(4, cut - 3)).stroke({ color: this.theme.accent, width: 1.3, alpha: .8 });
+        visual.body.circle(6, 6, 4).fill({ color: this.theme.accent });
+        visual.body.circle(word.width - 6, 6, 4).fill({ color: this.theme.accent });
+        visual.body.circle(6, word.height - 6, 4).fill({ color: this.theme.accent });
+        visual.body.circle(word.width - 6, word.height - 6, 4).fill({ color: this.theme.accent });
+      }
+      }
       visual.prompt.text = word.prompt;
-      visual.prompt.position.set(word.width / 2, 20);
-      visual.prompt.style = { fontFamily: 'DM Sans, sans-serif', fontSize: 11, fontWeight: '600', fill: selected ? 0xffc58b : 0xb5dcff, align: 'center' };
+      visual.prompt.position.set(word.width / 2, visual.art && !this.floral ? 6 : 20);
+      visual.prompt.style = { fontFamily: 'DM Sans, sans-serif', fontSize: themed ? 15 : 11, fontWeight: '700', fill: themed ? this.theme.ink : (selected ? 0xffc58b : 0xb5dcff), align: 'center' };
       visual.answer.text = word.target;
-      visual.answer.position.set(word.width / 2, 49);
-      const fontSize = Math.min(21, Math.max(14, 265 / Math.max(word.target.length, 9)));
-      visual.answer.style = { fontFamily: 'DM Sans, sans-serif', fontSize, fontWeight: '700', fill: 0xffffff, align: 'center' };
+      visual.answer.position.set(word.width / 2, visual.art && !this.floral ? 27 : 49);
+      const fontSize = Math.min(themed ? 27 : 21, Math.max(14, (themed ? 330 : 265) / Math.max(word.target.length, 9)));
+      visual.answer.style = { fontFamily: 'DM Sans, sans-serif', fontSize, fontWeight: '700', fill: this.floral ? 0xffffff : this.theme.ink, align: 'center' };
+      const letterKey = `${selected ? word.typedInput || '' : ''}|${word.target}|${fontSize}`;
+      visual.answer.visible = !selected || !word.typedInput;
+      if (visual.letterKey !== letterKey) {
+        visual.letterKey = letterKey;
+        visual.letters.removeChildren().forEach(child => child.destroy());
+      if (selected && word.typedInput) {
+        const chars = Array.from(word.target);
+        const statuses = characterStates(word.target, word.typedInput);
+        const nodes = chars.map((char, index) => new Text({ text: char, style: { fontFamily: 'DM Sans, sans-serif', fontSize, fontWeight: '700', fill: statuses[index] === 'correct' ? 0x54e69a : statuses[index] === 'wrong' ? 0xffa3ae : (this.floral ? 0xffffff : this.theme.ink) } }));
+        const total = nodes.reduce((sum, node) => sum + node.width, 0);
+        let left = (word.width - total) / 2;
+        for (const node of nodes) { node.position.set(left, (visual.art && !this.floral ? 27 : 49) - node.height / 2); visual.letters.addChild(node); left += node.width; }
+      }
+      }
     }
 
     frame.projectiles.forEach((bolt, index) => {
@@ -126,17 +194,34 @@ export default class PixiGameScene {
       graphic.clear();
       graphic.position.set(bolt.x, bolt.y);
       graphic.rotation = angle;
-      graphic.rect(-27, -3, 36, 6).fill({ color: bolt.color, alpha: 0.44 });
-      graphic.ellipse(5, 0, 13, 4).fill({ color: 0xffffff, alpha: 0.98 });
+      // Layered luminous trail, blade, guard and sparks.
+      graphic.moveTo(-75, 0).lineTo(-8, -7).lineTo(-8, 7).closePath().fill({ color: 0x67eaff, alpha: .20 });
+      graphic.moveTo(-62, 0).lineTo(-8, -3).lineTo(-8, 3).closePath().fill({ color: 0xffffff, alpha: .72 });
+      graphic.ellipse(0, 0, 25, 11).fill({ color: 0x8cefff, alpha: .25 });
+      graphic.moveTo(-9, -5).lineTo(24, 0).lineTo(-9, 5).closePath().fill({ color: 0xd8ffff, alpha: 1 });
+      graphic.moveTo(-9, -2).lineTo(24, 0).lineTo(-9, 1).closePath().fill({ color: 0x51d8ff, alpha: .95 });
+      graphic.moveTo(-12, -11).lineTo(-7, -5).lineTo(-7, 5).lineTo(-12, 11).lineTo(-15, 8).lineTo(-12, 0).lineTo(-15, -8).closePath().fill({ color: 0xffd46d });
+      graphic.roundRect(-24, -2, 12, 4, 2).fill({ color: 0xe3b44b });
+      graphic.circle(-34, -9, 2).fill({ color: 0xfaf7bd, alpha: .9 });
+      graphic.circle(-51, 6, 1.5).fill({ color: 0xc3ffff, alpha: .9 });
       graphic.alpha = 1;
+      if (this.projectileTexture) {
+        let sprite = this.projectileSprites[index];
+        if (!sprite) { sprite = new Sprite(this.projectileTexture); sprite.anchor.set(.65, .5); this.app.stage.addChild(sprite); this.projectileSprites[index] = sprite; }
+        sprite.position.set(bolt.x, bolt.y); sprite.rotation = angle; sprite.width = 122; sprite.height = 42; sprite.alpha = 1;
+      }
     });
     for (let i = frame.projectiles.length; i < this.boltPool.length; i++) this.boltPool[i].alpha = 0;
+    for (let i = frame.projectiles.length; i < this.projectileSprites.length; i++) this.projectileSprites[i].alpha = 0;
 
     frame.particles.forEach((particle, index) => {
       const graphic = this.graphicAt(this.particlePool, index);
       graphic.clear();
       graphic.position.set(particle.x, particle.y);
-      graphic.circle(0, 0, Math.max(1, (particle.size || 4) * particle.life)).fill({ color: particle.color, alpha: Math.max(0, particle.life) });
+      const radius = Math.max(1, (particle.size || 4) * particle.life);
+      graphic.circle(0, 0, radius * 2.2).fill({ color: particle.color, alpha: Math.max(0, particle.life * .18) });
+      graphic.moveTo(0, -radius * 2).lineTo(radius * .5, 0).lineTo(0, radius * 2).lineTo(-radius * .5, 0).closePath().fill({ color: 0xeaffff, alpha: Math.max(0, particle.life) });
+      graphic.moveTo(-radius * 2, 0).lineTo(0, -radius * .5).lineTo(radius * 2, 0).lineTo(0, radius * .5).closePath().fill({ color: particle.color, alpha: Math.max(0, particle.life) });
     });
     for (let i = frame.particles.length; i < this.particlePool.length; i++) this.particlePool[i].alpha = 0;
 
@@ -168,8 +253,8 @@ export default class PixiGameScene {
       const target = frame.activeWords.find(word => !word.isHit);
       const targetX = target ? target.x + target.width / 2 : width / 2;
       const targetY = target ? target.y + target.height / 2 : 0;
-      this.ship.position.set(width / 2, height - 76);
-      this.ship.rotation = Math.atan2(targetY - this.ship.y, targetX - this.ship.x) + Math.PI / 2;
+      this.ship.position.set(width / 2, height - (this.theme.name === 'Mặc định' ? 76 : Math.min(180, height * .20)));
+      this.ship.rotation = this.theme.name !== 'Mặc định' ? 0 : Math.atan2(targetY - this.ship.y, targetX - this.ship.x) + Math.PI / 2;
       this.ship.alpha = 1;
     }
 
@@ -180,6 +265,8 @@ export default class PixiGameScene {
     this.words.clear();
     this.stars.length = 0;
     this.boltPool.length = 0;
+    this.projectileSprites.length = 0;
+    this.projectileTexture = null;
     this.particlePool.length = 0;
     this.flashPool.length = 0;
     this.scorePool.length = 0;

@@ -1,3 +1,4 @@
+import { setFeedback } from './feedback-display.js';
 import { createElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { gsap } from 'gsap';
@@ -256,15 +257,9 @@ export class UIManager {
   setGameFeedback(message, kind = '') {
     const node = document.getElementById('game-feedback');
     if (!node) return;
-    node.textContent = message || '';
+    gsap.killTweensOf(node);
     const state = kind === 'correct' ? 'good' : kind === 'wrong' ? 'bad' : kind;
-    node.className = `game-feedback ${message ? 'is-visible' : ''} ${state ? `is-${state}` : ''}`;
-    if (message) {
-      gsap.killTweensOf(node);
-      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) gsap.fromTo(node, { autoAlpha: 0 }, { autoAlpha: 1, duration: .18, ease: 'power2.out' });
-      clearTimeout(this.feedbackTimer);
-      this.feedbackTimer = setTimeout(() => { node.className = 'game-feedback'; }, 850);
-    }
+    setFeedback(node, message, state);
   }
 
   showPause(onResume) {
@@ -293,6 +288,5 @@ export class UIManager {
 }
 
 export const uiManager = new UIManager();
-
 
 
