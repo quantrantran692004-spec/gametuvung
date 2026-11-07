@@ -269,3 +269,11 @@ body[data-lobby-theme="meadow"]:not(.home-lobby):not(.game-active) .progress-sta
  .lobby-daily{gap:2px}.lobby-daily small{display:none}.lobby-daily b{font-size:12px}
  .lobby-theme-picker select{font-size:9px}
 }
+@media(max-width:650px){
+ .lobby-theme-picker{position:relative;justify-content:flex-start}
+ .lobby-theme-picker>span{display:none!important}
+ .lobby-picker-current{display:block;min-width:0;overflow:hidden;color:inherit;font-size:9px;line-height:1.1;text-overflow:ellipsis;white-space:nowrap}
+ .lobby-theme-picker select{position:absolute;inset:0;width:100%;height:100%;max-width:none;opacity:0;cursor:pointer}
+ .theme-preview{width:20px;height:20px}
+}
+@media(max-width:380px){.lobby-picker-current{font-size:8px}}
