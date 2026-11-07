@@ -82,6 +82,13 @@ export class ProfileManager {
     return newProfile;
   }
 
+  async setAvatar(avatar) {
+    if (!this.currentProfile || !(avatar === '🚀' || /^avatar-(?:[1-9]|1[0-2])$/.test(avatar))) return false;
+    this.currentProfile.avatar = avatar;
+    await db.put('profiles', this.currentProfile);
+    return true;
+  }
+
   async updateSettings(newSettings) {
     if (!this.currentProfile) return;
     this.currentProfile.settings = { ...this.currentProfile.settings, ...newSettings };

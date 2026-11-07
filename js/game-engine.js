@@ -574,13 +574,18 @@ export class GameEngine {
       }
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.font = '700 14px "DM Sans", sans-serif'; ctx.fillStyle = hasCard ? '#493144' : '#bdefff';
-      ctx.fillText(w.prompt, w.x + w.width / 2, w.y + (hasCard && !floral ? 6 : 18), w.width - 24);
+      ctx.fillText(w.prompt, w.x + w.width / 2, w.y + (hasCard && !floral ? 6 : 18), hasCard && floral ? (w.width + 32) * .64 : w.width - 24);
       const targetSize = Math.min(hasCard ? 27 : 21, Math.max(14, 265 / Math.max(w.target.length, 9)));
       ctx.font = `800 ${targetSize}px "DM Sans", sans-serif`;
       const chars = Array.from(w.target); const typed = selected ? w.typedInput || '' : ''; const states = characterStates(w.target, typed);
-      const fullWidth = ctx.measureText(w.target).width; let cursor = w.x + (w.width - fullWidth) / 2;
+      const fullWidth = ctx.measureText(w.target).width;
+      const fitWidth = hasCard && floral ? (w.width + 32) * .57 : w.width - 24;
+      const textScale = Math.min(1, fitWidth / Math.max(1, fullWidth));
+      ctx.translate(w.x + w.width / 2, w.y + (hasCard && !floral ? 27 : hasCard && floral ? 61 : 48));
+      ctx.scale(textScale, 1);
+      let cursor = -fullWidth / 2;
       ctx.textAlign = 'left';
-      chars.forEach((char, index) => { ctx.fillStyle = states[index] === 'correct' ? '#27bd6c' : states[index] === 'wrong' ? '#fa6570' : (hasCard && !floral ? '#30252a' : '#fff'); ctx.fillText(char, cursor, w.y + (hasCard && !floral ? 27 : 48)); cursor += ctx.measureText(char).width; });
+      chars.forEach((char, index) => { ctx.fillStyle = states[index] === 'correct' ? '#27bd6c' : states[index] === 'wrong' ? '#fa6570' : (hasCard && !floral ? '#30252a' : '#fff'); ctx.fillText(char, cursor, 0); cursor += ctx.measureText(char).width; });
       ctx.restore();
     }
 

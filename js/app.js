@@ -122,6 +122,7 @@ class App {
     else if (action === 'delete-word') await this.deleteWord(button.dataset.wordId);
     else if (action === 'open-profiles') document.getElementById('profile-dialog')?.showModal();
     else if (action === 'switch-profile') await this.switchProfile(button.dataset.profileId);
+    else if (action === 'set-avatar') { if (await profileManager.setAvatar(button.dataset.avatar)) { await this.navigate('home', false); uiManager.updateProfile(profileManager.getCurrentProfile(), profileManager.profiles); } }
     else if (action === 'test-voice') { const form = document.getElementById('settings-form'); const enabled = audioManager.voiceEnabled; const name = audioManager.voiceName; const rate = audioManager.voiceRate; if (form) audioManager.setVoice(form.elements.voiceName.value, form.elements.voiceRate.value); audioManager.voiceEnabled = true; audioManager.speak('Ready. Type the word before it falls.', 'en-US'); audioManager.voiceEnabled = enabled; audioManager.setVoice(name, rate); }
   }
 

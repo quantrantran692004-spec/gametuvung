@@ -166,12 +166,20 @@ export default class PixiGameScene {
       }
       }
       visual.prompt.text = word.prompt;
+      const floralCard = Boolean(visual.art && this.floral);
+      const promptWidth = floralCard ? (word.width + 32) * 0.64 : word.width - 24;
+      const answerWidth = floralCard ? (word.width + 32) * 0.57 : word.width - 24;
+      const answerY = visual.art && !this.floral ? 27 : floralCard ? 61 : 49;
       visual.prompt.position.set(word.width / 2, visual.art && !this.floral ? 6 : 20);
       visual.prompt.style = { fontFamily: 'DM Sans, sans-serif', fontSize: themed ? 15 : 11, fontWeight: '700', fill: themed ? this.theme.ink : (selected ? 0xffc58b : 0xb5dcff), align: 'center' };
+      visual.prompt.scale.set(1);
+      visual.prompt.scale.x = Math.min(1, promptWidth / Math.max(1, visual.prompt.width));
       visual.answer.text = word.target;
-      visual.answer.position.set(word.width / 2, visual.art && !this.floral ? 27 : 49);
+      visual.answer.position.set(word.width / 2, answerY);
       const fontSize = Math.min(themed ? 27 : 21, Math.max(14, (themed ? 330 : 265) / Math.max(word.target.length, 9)));
       visual.answer.style = { fontFamily: 'DM Sans, sans-serif', fontSize, fontWeight: '700', fill: this.floral ? 0xffffff : this.theme.ink, align: 'center' };
+      visual.answer.scale.set(1);
+      visual.answer.scale.x = Math.min(1, answerWidth / Math.max(1, visual.answer.width));
       const letterKey = `${selected ? word.typedInput || '' : ''}|${word.target}|${fontSize}`;
       visual.answer.visible = !selected || !word.typedInput;
       if (visual.letterKey !== letterKey) {
@@ -183,7 +191,10 @@ export default class PixiGameScene {
         const nodes = chars.map((char, index) => new Text({ text: char, style: { fontFamily: 'DM Sans, sans-serif', fontSize, fontWeight: '700', fill: statuses[index] === 'correct' ? 0x54e69a : statuses[index] === 'wrong' ? 0xffa3ae : (this.floral ? 0xffffff : this.theme.ink) } }));
         const total = nodes.reduce((sum, node) => sum + node.width, 0);
         let left = (word.width - total) / 2;
-        for (const node of nodes) { node.position.set(left, (visual.art && !this.floral ? 27 : 49) - node.height / 2); visual.letters.addChild(node); left += node.width; }
+        for (const node of nodes) { node.position.set(left, answerY - node.height / 2); visual.letters.addChild(node); left += node.width; }
+        visual.letters.pivot.x = word.width / 2;
+        visual.letters.position.x = word.width / 2;
+        visual.letters.scale.x = Math.min(1, answerWidth / Math.max(1, total));
       }
       }
     }

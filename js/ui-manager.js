@@ -9,6 +9,8 @@ const escapeHtml = (value = '') => String(value).replace(/[&<>"']/g, char => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
 }[char]));
 
+const avatarArt = value => /^avatar-(?:[1-9]|1[0-2])$/.test(value || '') ? `<i class="profile-avatar-art ${value}" aria-hidden="true"></i>` : escapeHtml(value || 'P');
+
 const icons = {
   play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7V5Z"/></svg>',
   search: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.4"/><path d="m16 16 4.2 4.2"/></svg>',
@@ -94,19 +96,21 @@ export class UIManager {
     });
     ['sidebar-avatar', 'topbar-avatar'].forEach(id => {
       const node = document.getElementById(id);
-      if (node) node.textContent = initial;
+      if (node) node.innerHTML = avatarArt(initial);
     });
     const profileDialog = document.getElementById('profile-list');
     if (profileDialog) profileDialog.innerHTML = this.profileOptions(profiles, profile?.id);
+    const choices = document.getElementById('avatar-choices');
+    if (choices) choices.innerHTML = Array.from({ length: 12 }, (_, index) => { const value = `avatar-${index + 1}`; return `<button class="avatar-choice ${profile?.avatar === value ? 'is-selected' : ''}" type="button" data-action="set-avatar" data-avatar="${value}" aria-label="Ảnh đại diện ${index + 1}" aria-pressed="${profile?.avatar === value}"><i class="profile-avatar-art ${value}" aria-hidden="true"></i></button>`; }).join('') + `<button class="avatar-choice avatar-default ${profile?.avatar === '🚀' ? 'is-selected' : ''}" type="button" data-action="set-avatar" data-avatar="🚀" aria-label="Ảnh đại diện mặc định" aria-pressed="${profile?.avatar === '🚀'}">🚀</button>`;
   }
 
   profileOptions(profiles, currentId) {
     if (!profiles.length) return '<p class="empty-state">Chưa có hồ sơ người chơi.</p>';
     return profiles.map(profile => {
       const active = profile.id === currentId;
-      const initial = Array.from((profile.name || 'P').trim())[0]?.toUpperCase() || 'P';
+      const initial = profile.avatar || Array.from((profile.name || 'P').trim())[0]?.toUpperCase() || 'P';
       return `<button class="profile-option ${active ? 'is-current' : ''}" type="button" data-action="switch-profile" data-profile-id="${escapeHtml(profile.id)}" ${active ? 'aria-current="true"' : ''}>
-        <span class="avatar avatar-sidebar">${escapeHtml(initial)}</span><span><strong>${escapeHtml(profile.name || 'Người chơi')}</strong><small>${active ? 'Đang sử dụng' : 'Đổi sang hồ sơ này'}</small></span>
+        <span class="avatar avatar-sidebar">${avatarArt(initial)}</span><span><strong>${escapeHtml(profile.name || 'Người chơi')}</strong><small>${active ? 'Đang sử dụng' : 'Đổi sang hồ sơ này'}</small></span>
       </button>`;
     }).join('');
   }
