@@ -244,3 +244,28 @@ body[data-lobby-theme="meadow"]:not(.home-lobby):not(.game-active) .progress-sta
 .lobby-icon-button:hover{border:0;background:transparent;box-shadow:none;filter:brightness(1.12);transform:translateY(-1px)}
 .lobby-icon-button .lobby-sprite-icon{display:block;width:34px;height:34px;margin:auto}
 .lobby-tools{align-items:center}.lobby-theme-picker{align-items:center}.lobby-player-stats{align-items:center;justify-items:center;grid-template-columns:auto auto;column-gap:4px}.lobby-player-stats small{grid-column:1/-1;text-align:center}.lobby-player-stats .sprite-book{width:25px;height:25px;margin:0}
+@media(max-width:650px){
+ body.home-lobby,body.home-lobby .page-main{overflow-x:hidden;max-width:100vw}
+ body.home-lobby .screen.home-screen{width:100%;min-width:0;overflow-x:hidden;padding-inline:10px}
+ .lobby-topbar{display:grid;grid-template-columns:minmax(0,1fr);width:100%;min-width:0;gap:6px}
+ .lobby-player{width:100%;min-width:0;max-width:100%;box-sizing:border-box}
+ .lobby-tools{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(56px,.75fr) 30px 30px;gap:4px;width:100%;min-width:0;margin:0}
+ .lobby-theme-picker{display:flex;min-width:0;gap:4px;padding:4px 5px;border-radius:10px;box-sizing:border-box}
+ .lobby-theme-picker select{display:block;flex:1;min-width:0;width:0;max-width:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px}
+ .theme-preview{width:23px;height:23px;flex:none}
+ .lobby-daily{min-width:0;height:32px;justify-content:center;gap:2px;padding:0 3px;box-sizing:border-box}
+ .lobby-daily small{font-size:5px;letter-spacing:0}.lobby-daily .sprite-daily{width:18px;height:18px}
+ .lobby-icon-button{width:30px;height:32px;padding:0}.lobby-icon-button .lobby-sprite-icon{width:27px;height:27px}
+ .lobby-hero,.lobby-mode-grid,.lobby-modes,.lobby-utilities{width:100%;min-width:0;max-width:100%}
+ .lobby-hero h1{max-width:100%;font-size:clamp(30px,10vw,43px);overflow-wrap:anywhere}
+ .lobby-mode-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .lobby-mode-card,.lobby-utility{min-width:0}
+ .lobby-theme-picker,.lobby-daily,.lobby-icon-button{order:0}
+ body.home-lobby{width:100%;max-width:100vw;overflow-x:clip}
+ body.home-lobby .app-shell{width:100%;max-width:100vw;box-sizing:border-box}
+}
+@media(max-width:380px){
+ .lobby-tools{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 38px 27px 27px}
+ .lobby-daily{gap:2px}.lobby-daily small{display:none}.lobby-daily b{font-size:12px}
+ .lobby-theme-picker select{font-size:9px}
+}
