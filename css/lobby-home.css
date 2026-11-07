@@ -237,3 +237,10 @@ body[data-lobby-theme="meadow"]:not(.home-lobby):not(.game-active) .progress-sta
 .sprite-book{background-position:50% 0}.sprite-daily{background-position:100% 0}.sprite-sound{width:32px;height:32px;background-position:0 100%}.sprite-settings{background-position:50% 100%}
 .lobby-player-stats{position:relative}.lobby-player-stats .sprite-book{width:26px;height:26px;margin-right:3px;vertical-align:middle}.lobby-player-stats b{vertical-align:middle}.lobby-daily{display:flex;align-items:center;gap:4px}.lobby-daily .sprite-daily{width:22px;height:22px}.lobby-icon-button{display:grid;place-items:center}.lobby-icon-button .lobby-sprite-icon{width:34px;height:34px}
 .theme-preview{display:block;flex:none;width:34px;height:34px;border:2px solid #ffffffd9;border-radius:9px;background-position:center;background-size:cover;box-shadow:0 2px 7px #12244a70}.theme-lobby-meadow{background-image:url('../assets/lobby-meadow.webp')}.theme-lobby-academy{background-image:url('../assets/lobby-academy.webp')}.theme-lobby-space{background-image:url('../assets/lobby-cosmos.webp')}.theme-game-preview{background-repeat:no-repeat}
+/* Keep the artwork itself clean: the asset already contains its medallion/details. */
+.lobby-avatar,#topbar-avatar{border:0!important;box-shadow:none!important}
+.theme-preview{border:0;border-radius:6px;box-shadow:none}
+.lobby-icon-button{box-sizing:border-box;border:0;background:transparent;box-shadow:none;transition:transform .16s ease,filter .16s ease}
+.lobby-icon-button:hover{border:0;background:transparent;box-shadow:none;filter:brightness(1.12);transform:translateY(-1px)}
+.lobby-icon-button .lobby-sprite-icon{display:block;width:34px;height:34px;margin:auto}
+.lobby-tools{align-items:center}.lobby-theme-picker{align-items:center}.lobby-player-stats{align-items:center;justify-items:center;grid-template-columns:auto auto;column-gap:4px}.lobby-player-stats small{grid-column:1/-1;text-align:center}.lobby-player-stats .sprite-book{width:25px;height:25px;margin:0}
