@@ -47,14 +47,14 @@ export default function HomeLobby({ data, selectedMode, pool }: Props) {
             <small>LV. {level} · {levelHits}/20 TỪ TRÚNG</small>
             <span className="lobby-xp-track"><i style={{ width: `${levelHits * 5}%` }} /></span>
           </span>
-          <span className="lobby-player-stats"><b>{totalWords}</b><small>TỪ TRONG KHO</small></span>
+          <span className="lobby-player-stats"><i className="lobby-sprite-icon sprite-book" aria-hidden="true"/><b>{totalWords}</b><small>TỪ TRONG KHO</small></span>
         </button>
         <div className="lobby-tools">
-          <label className="lobby-theme-picker"><span>Giao diện</span><select aria-label="Chọn giao diện trang chủ" value={theme} onChange={event => changeTheme(event.target.value)}><option value="meadow">Vườn từ vựng</option><option value="academy">Học viện</option><option value="space">Không gian</option></select></label>
-          <label className="lobby-theme-picker"><span>Màn chơi</span><select aria-label="Chọn giao diện màn chơi" value={gameTheme} onChange={event => changeGameTheme(event.target.value)}><option value="0">Không gian mặc định</option>{['Tiên sơn','Đào tiên','Trúc lâm','Tiên giới 3D','Thủy mặc','Chibi','Điện ảnh','Cung đình','Cực quang','Biển trời'].map((name, index) => <option key={name} value={String(index + 1)}>{name}</option>)}</select></label>
-          <span className="lobby-daily"><span>✦</span><b>{dailyCount}</b><small>TỪ HÔM NAY</small></span>
-          <motion.button className="lobby-icon-button" type="button" data-action="test-voice" aria-label="Kiểm tra âm thanh" whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}>◖))</motion.button>
-          <motion.button className="lobby-icon-button" type="button" data-route="settings" aria-label="Cài đặt" whileHover={{ rotate: 14 }} whileTap={{ scale: 0.94 }}>⚙</motion.button>
+          <label className="lobby-theme-picker"><i className={`theme-preview theme-lobby-${theme}`} aria-hidden="true"/><span>Giao diện</span><select aria-label="Chọn giao diện trang chủ" value={theme} onChange={event => changeTheme(event.target.value)}><option value="meadow">Vườn từ vựng</option><option value="academy">Học viện</option><option value="space">Không gian</option></select></label>
+          <label className="lobby-theme-picker"><i className="theme-preview theme-game-preview" style={{backgroundImage: `url('${gameTheme === '0' ? '/assets/cosmic-arena.webp' : `/assets/game-themes/theme-${gameTheme.padStart(2, '0')}.webp`}')`}} aria-hidden="true"/><span>Màn chơi</span><select aria-label="Chọn giao diện màn chơi" value={gameTheme} onChange={event => changeGameTheme(event.target.value)}><option value="0">Không gian mặc định</option>{['Tiên sơn','Đào tiên','Trúc lâm','Tiên giới 3D','Thủy mặc','Chibi','Điện ảnh','Cung đình','Cực quang','Biển trời'].map((name, index) => <option key={name} value={String(index + 1)}>{name}</option>)}</select></label>
+          <span className="lobby-daily"><i className="lobby-sprite-icon sprite-daily" aria-hidden="true"/><b>{dailyCount}</b><small>TỪ HÔM NAY</small></span>
+          <motion.button className="lobby-icon-button" type="button" data-action="test-voice" aria-label="Kiểm tra âm thanh" whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}><i className="lobby-sprite-icon sprite-sound" aria-hidden="true"/></motion.button>
+          <motion.button className="lobby-icon-button" type="button" data-route="settings" aria-label="Cài đặt" whileHover={{ rotate: 14 }} whileTap={{ scale: 0.94 }}><i className="lobby-sprite-icon sprite-settings" aria-hidden="true"/></motion.button>
         </div>
       </header>
 
