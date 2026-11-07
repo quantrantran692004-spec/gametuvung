@@ -295,3 +295,43 @@ body[data-lobby-theme="meadow"]:not(.home-lobby):not(.game-active) .progress-sta
  .lobby-icon-button{grid-column:span 2;width:100%;height:36px;border-radius:10px}
  .lobby-icon-button .lobby-sprite-icon{width:26px;height:26px}
 }
+
+/* Header controls use the supplied game icon sheet: one icon and one label per scene. */
+.sprite-avatar{background-position:0 0}
+.sprite-scene{width:34px;height:34px;background-position:100% 100%;filter:none}
+.lobby-avatar{width:48px;height:48px;padding:0;overflow:visible;border:0!important;border-radius:0;background:none!important;box-shadow:none!important}
+.lobby-avatar .sprite-avatar{width:48px;height:48px;filter:none}
+.lobby-theme-picker{position:relative;display:flex;align-items:center;justify-content:flex-start;gap:8px;min-width:132px;height:46px;padding:4px 10px;overflow:hidden;border:1px solid #83baff99;border-radius:14px;color:#f4f7ff;background:#12244cdd;box-shadow:0 4px 13px #03091977;box-sizing:border-box;backdrop-filter:blur(8px)}
+.lobby-theme-picker::before,.lobby-theme-picker::after{content:none!important}
+.lobby-theme-picker .lobby-sprite-icon{width:34px;height:34px;flex:none;filter:none}
+.lobby-picker-current{position:relative;z-index:1;display:block;min-width:0;overflow:hidden;color:inherit;font-size:12px;font-weight:800;line-height:1.1;text-overflow:ellipsis;white-space:nowrap;text-shadow:none}
+.lobby-theme-picker select{position:absolute;inset:0;z-index:3;width:100%;height:100%;max-width:none;opacity:0;cursor:pointer}
+.lobby-theme-picker:focus-within{outline:3px solid #75eaff;outline-offset:2px}
+.lobby-icon-button{width:36px;height:36px;border:0!important;border-radius:0;color:#fff;background:transparent!important;box-shadow:none!important}
+.lobby-icon-button .lobby-sprite-icon{width:36px;height:36px;filter:none}
+.lobby-icon-button:hover{border:0!important;background:transparent!important;box-shadow:none!important;filter:brightness(1.12);transform:translateY(-1px)}
+.home-screen[data-theme="meadow"] .lobby-theme-picker,.home-screen[data-theme="academy"] .lobby-theme-picker{color:#17345d;background:#f4fbfff0;border-color:#a8cce7;box-shadow:0 4px 13px #2351772b}
+.home-screen[data-theme="meadow"] .lobby-icon-button,.home-screen[data-theme="academy"] .lobby-icon-button{color:#17345d;background:transparent!important;border:0!important;box-shadow:none!important}
+@media(max-width:650px){
+ .lobby-avatar,.lobby-avatar .sprite-avatar{width:42px;height:42px}
+ .lobby-tools{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 38px 30px 30px;grid-template-rows:40px;gap:4px;width:100%;margin:0}
+ .lobby-theme-picker{grid-column:auto;min-width:0;width:100%;height:38px;gap:5px;padding:3px 6px;border-radius:11px}
+ .lobby-theme-picker .lobby-sprite-icon{width:28px;height:28px}
+ .lobby-picker-current{font-size:9px}
+ .lobby-daily{grid-column:auto;width:38px;height:32px;gap:2px;padding:0 2px}
+ .lobby-daily small{display:none}.lobby-daily .sprite-daily{width:20px;height:20px}
+ .lobby-icon-button{grid-column:auto;width:30px;height:32px;padding:0}
+ .lobby-icon-button .lobby-sprite-icon{width:28px;height:28px}
+}
+@media(max-width:380px){
+ .lobby-avatar,.lobby-avatar .sprite-avatar{width:38px;height:38px}
+ .lobby-tools{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 34px 28px 28px;gap:3px}
+ .lobby-theme-picker{gap:3px;padding-inline:4px}
+ .lobby-theme-picker .lobby-sprite-icon{width:25px;height:25px}
+ .lobby-picker-current{font-size:8px}
+}
+
+/* Swap the complete header icon set with the selected lobby world. */
+.home-screen[data-theme="meadow"] .lobby-sprite-icon{background-image:url('../assets/lobby-icons-meadow.png')}
+.home-screen[data-theme="academy"] .lobby-sprite-icon{background-image:url('../assets/lobby-icons-academy.png')}
+.home-screen[data-theme="space"] .lobby-sprite-icon{background-image:url('../assets/lobby-icons-space.png')}
