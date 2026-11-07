@@ -37,7 +37,7 @@ export default function HomeLobby({ data, selectedMode, pool }: Props) {
   const timer = data.settings?.timerDuration || 60;
   const units = [...new Set((data.words || []).map(word => String(word.unit || 'General').trim() || 'General'))].sort((a,b) => a.localeCompare(b));
   const gameThemeNames = ['Tiên sơn','Đào tiên','Trúc lâm','Tiên giới 3D','Thủy mặc','Chibi','Điện ảnh','Cung đình','Cực quang','Biển trời'];
-  const lobbyThemeLabel = theme === 'meadow' ? 'Vườn' : theme === 'academy' ? 'Học viện' : 'Không gian';
+  const lobbyThemeLabel = theme === 'meadow' ? 'Vườn' : theme === 'academy' ? 'Học viện' : 'Vũ trụ từ vựng';
   const gameThemeLabel = gameTheme === '0' ? 'Không gian' : gameThemeNames[Number(gameTheme) - 1] || 'Không gian';
 
   return (
@@ -53,7 +53,7 @@ export default function HomeLobby({ data, selectedMode, pool }: Props) {
           <span className="lobby-player-stats"><i className="lobby-sprite-icon sprite-book" aria-hidden="true"/><b>{totalWords}</b><small>TỪ TRONG KHO</small></span>
         </button>
         <div className="lobby-tools">
-          <label className="lobby-theme-picker"><i className="lobby-sprite-icon sprite-book" aria-hidden="true"/><span>Giao diện</span><b className="lobby-picker-current">{lobbyThemeLabel}</b><select aria-label="Chọn giao diện trang chủ" value={theme} onChange={event => changeTheme(event.target.value)}><option value="meadow">Vườn từ vựng</option><option value="academy">Học viện</option><option value="space">Không gian</option></select></label>
+          <label className="lobby-theme-picker"><i className="lobby-sprite-icon sprite-theme" aria-hidden="true"/><span>Giao diện</span><b className="lobby-picker-current">{lobbyThemeLabel}</b><select aria-label="Chọn giao diện trang chủ" value={theme} onChange={event => changeTheme(event.target.value)}><option value="meadow">Vườn từ vựng</option><option value="academy">Học viện</option><option value="space">Không gian</option></select></label>
           <label className="lobby-theme-picker"><i className="lobby-sprite-icon sprite-scene" aria-hidden="true"/><span>Màn chơi</span><b className="lobby-picker-current">{gameThemeLabel}</b><select aria-label="Chọn giao diện màn chơi" value={gameTheme} onChange={event => changeGameTheme(event.target.value)}><option value="0">Không gian mặc định</option>{gameThemeNames.map((name, index) => <option key={name} value={String(index + 1)}>{name}</option>)}</select></label>
           <span className="lobby-daily"><i className="lobby-sprite-icon sprite-daily" aria-hidden="true"/><b>{dailyCount}</b><small>TỪ HÔM NAY</small></span>
           <motion.button className="lobby-icon-button" type="button" data-action="test-voice" aria-label="Kiểm tra âm thanh" whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}><i className="lobby-sprite-icon sprite-sound" aria-hidden="true"/></motion.button>
@@ -64,7 +64,7 @@ export default function HomeLobby({ data, selectedMode, pool }: Props) {
       <section className="lobby-hero" aria-labelledby="lobby-title">
         <div className="lobby-floating-words" aria-hidden="true"><span>Vocabulary!</span><span>English</span><span>Learn</span><span>Practice</span><span>Challenge</span></div>
         <div className="lobby-brand-kicker">ENGLISH VOCABULARY ARCADE</div>
-        <h1 id="lobby-title">WORD <span>SHOOTER</span></h1>
+        <h1 id="lobby-title" aria-label="WORD SHOOTER"><span className="lobby-word-line">WORD</span><span>SHO<span className="lobby-logo-target" aria-hidden="true">O</span>TER</span></h1>
         <p>Nghe từ · gõ thật nhanh · bắn trúng mục tiêu</p>
         <motion.button className="lobby-start-button" type="button" data-action="start-game" whileHover={{ y: -3, scale: 1.025 }} whileTap={{ y: 2, scale: 0.98 }}>
           <span className="lobby-play-icon">▶</span><span>BẮT ĐẦU CHƠI</span><span className="lobby-enter-hint">ENTER ↵</span>
