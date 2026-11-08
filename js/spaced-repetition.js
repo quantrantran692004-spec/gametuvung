@@ -55,7 +55,7 @@ export class SpacedRepetition {
     const now = new Date().toISOString();
     return vocabList.filter(w => {
       if (!w.nextReviewDate) return true; // Chưa học lần nào
-      return w.nextReviewDate <= now || w.needsReview;
+      return w.nextReviewDate <= now || (w.needsReview && !w.lastReviewedAt);
     });
   }
 }

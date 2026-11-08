@@ -28,7 +28,7 @@ export default function GameScreen({ profile, state, options }: Props) {
           backgroundAlpha: 0,
           antialias: !reduce,
           autoDensity: true,
-          resolution: Math.min(window.devicePixelRatio || 1, 1.75),
+          resolution: Math.min(window.devicePixelRatio || 1, 1.25),
           powerPreference: reduce ? 'low-power' : 'high-performance',
           autoStart: false,
         });
@@ -66,7 +66,7 @@ export default function GameScreen({ profile, state, options }: Props) {
   );
 
   return (
-    <section className="game-screen" data-game-theme={gameTheme} aria-label="Lượt chơi WORD SHOOTER">
+    <section className="game-screen" data-game-theme={gameTheme} data-mode={options.mode} aria-label="Lượt chơi WORD SHOOTER">
       <div className="game-playfield">
         <div className="arena-wrap" id="arena-wrap" ref={arenaRef}>
           <canvas id="game-canvas" aria-label="Từ vựng rơi xuống sân chơi" />

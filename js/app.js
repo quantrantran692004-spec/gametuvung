@@ -7,7 +7,7 @@ import { uiManager } from './ui-manager.js?v=31';
 import { GameEngine } from './game-engine.js?v=31';
 import { FileImporter } from './importer.js?v=31';
 import { SpacedRepetition } from './spaced-repetition.js?v=31';
-import { audioManager } from './audio-manager.js?v=31';
+import { audioManager } from './audio-manager.js?v=32';
 
 class App {
   constructor() { this.game = null; this.mode = 'survival'; this.pool = 'all'; this.startedAt = 0; this.currentRoute = 'home'; this.routeStack = []; }
@@ -29,6 +29,8 @@ class App {
 
   applyAudioSettings(settings) {
     audioManager.soundEnabled = settings.soundEnabled !== false;
+    audioManager.musicEnabled = settings.musicEnabled === true;
+    if (!audioManager.musicEnabled) audioManager.stopMusic();
     audioManager.voiceEnabled = settings.voiceEnabled === true;
     audioManager.setVoice(settings.voiceName || '', settings.voiceRate ?? 0.72);
   }
@@ -104,11 +106,12 @@ class App {
         node.setAttribute('aria-pressed', String(active));
       });
     } else if (action === 'start-game') this.startGame();
+    else if (action === 'play-all-lesson') this.startGame(true);
     else if (action === 'pause-game') this.pauseGame();
-    else if (action === 'resume-game') { this.game?.resume(); document.getElementById('game-overlay').hidden = true; document.getElementById('game-input')?.focus({ preventScroll: true }); }
+    else if (action === 'resume-game') { this.game?.resume(); audioManager.startMusic(); document.getElementById('game-overlay').hidden = true; document.getElementById('game-input')?.focus({ preventScroll: true }); }
     else if (action === 'quit-game') this.finishEarly();
     else if (action === 'exit-game') { this.destroyGame(); await this.navigate('home'); }
-    else if (action === 'replay-game') { this.destroyGame(); this.startGame(); }
+    else if (action === 'replay-game') { this.destroyGame(); this.startGame(this.playAllLesson); }
     else if (action === 'virtual-key') this.pressVirtualKey(button.dataset.key);
     else if (action === 'game-hint') this.showHint();
     else if (action === 'replay-word') { const target = this.game?.activeWords?.find(item => item.id === this.game.selectedTargetId) || this.game?.activeWords?.find(item => !item.isHit); if (target) audioManager.speak(target.target, 'en-US'); }
@@ -148,7 +151,8 @@ class App {
       const error = document.getElementById('bulk-word-error');
       if (invalidLines.length || !words.length) { error.textContent = invalidLines.length ? `Kiểm tra dòng ${invalidLines.join(', ')}: mỗi dòng cần có từ và nghĩa.` : 'Hãy nhập ít nhất một từ và nghĩa.'; error.hidden = false; return; }
       error.hidden = true;
-      const added = await vocabManager.addMultipleWords(words);
+      const unit = form.elements.unit.value.trim();
+      const added = await vocabManager.addMultipleWords(words.map(word => ({ ...word, unit })));
       form.reset(); form.closest('dialog').close();
       uiManager.showToast(`Đã thêm ${added.length} từ vào kho.`, 'success'); await this.navigate('vocabulary');
     } else if (form.id === 'profile-form') {
@@ -158,7 +162,7 @@ class App {
     } else if (form.id === 'settings-form') {
       event.preventDefault(); const values = new FormData(form);
       const settings = Object.fromEntries(values.entries());
-      ['acceptTypos', 'voiceEnabled', 'soundEnabled', 'reducedEffects'].forEach(key => settings[key] = form.elements[key].checked);
+      ['acceptTypos', 'voiceEnabled', 'soundEnabled', 'musicEnabled', 'reducedEffects'].forEach(key => settings[key] = form.elements[key].checked);
       ['lives', 'timerDuration', 'sessionSize'].forEach(key => settings[key] = Number(settings[key]));
       settings.voiceRate = Number(settings.voiceRate);
       settings.fallSeconds = Math.max(5, Math.min(60, Number(settings.fallSeconds) || 14));
@@ -178,6 +182,12 @@ class App {
   }
 
   handleChange(event) {
+    if (event.target.id === 'difficulty-preset') {
+      const presets = { new: { sessionSize: 5, fallSeconds: 26, lives: 8 }, normal: { sessionSize: 10, fallSeconds: 14, lives: 5 }, fast: { sessionSize: 20, fallSeconds: 9, lives: 3 } };
+      const values = presets[event.target.value];
+      const form = document.getElementById('settings-form');
+      if (values && form) Object.entries(values).forEach(([key, value]) => { form.elements[key].value = value; });
+    }
     if (event.target.id === 'home-pool-select') this.pool = event.target.value;
     if (event.target.id === 'library-filter') {
       uiManager.libraryFilter = event.target.value;
@@ -186,18 +196,19 @@ class App {
     if (event.target.id === 'file-import-input') this.importFile(event.target.files?.[0]);
   }
 
-  async startGame() {
+  async startGame(playAllLesson = false) {
+    this.playAllLesson = playAllLesson;
     const settings = profileManager.getCurrentProfile().settings || {};
     const lessonUnit = document.getElementById('lesson-unit')?.value || '';
     let words = this.pool === 'lesson'
-      ? vocabManager.getAll().filter(word => (String(word.unit || 'General').trim() || 'General') === lessonUnit).sort(() => Math.random() - 0.5).slice(0, Number(settings.sessionSize) || 10)
+      ? vocabManager.getAll().filter(word => (String(word.unit || 'General').trim() || 'General') === lessonUnit).sort(() => Math.random() - 0.5).slice(0, playAllLesson ? undefined : Number(settings.sessionSize) || 10)
       : vocabManager.getGameWords(Number(settings.sessionSize) || 10, this.pool);
     if (this.mode === 'survival' || this.mode === 'practice' || this.mode === 'timed') {
       if (!words.length) { uiManager.showToast(this.pool === 'review' ? 'Không có từ cần ôn trong kho.' : this.pool === 'lesson' ? 'Bài học này chưa có từ.' : 'Thêm ít nhất một từ để bắt đầu.', 'error'); await this.navigate('vocabulary'); return; }
     }
     this.destroyGame();
     const configuredLives = Number(settings.lives) || 5;
-    await uiManager.startGame(profileManager.getCurrentProfile(), { remaining: words.length, progress: 0, progressLabel: `${words.length} từ trong lượt`, timeLabel: this.mode === 'timed' ? `${settings.timerDuration || 60}s` : '', score: 0, combo: 0, lives: configuredLives, maxLives: this.mode === 'survival' ? configuredLives : undefined }, { poolLabel: this.pool === 'lesson' ? lessonUnit : this.pool === 'all' ? 'Kho từ' : this.pool === 'review' ? 'Từ cần ôn' : 'Từ yêu thích', modeLabel: { survival: 'Sinh tồn', timed: `${Number(settings.timerDuration) || 60} giây`, practice: 'Luyện tập' }[this.mode] || 'Sinh tồn', reducedEffects: settings.reducedEffects === true });
+    await uiManager.startGame(profileManager.getCurrentProfile(), { remaining: words.length, progress: 0, progressLabel: `${words.length} từ trong lượt`, timeLabel: this.mode === 'timed' ? `${settings.timerDuration || 60}s` : '', score: 0, combo: 0, lives: configuredLives, maxLives: this.mode === 'survival' ? configuredLives : undefined }, { poolLabel: this.pool === 'lesson' ? lessonUnit : this.pool === 'all' ? 'Kho từ' : this.pool === 'review' ? 'Từ cần ôn' : 'Từ yêu thích', mode: this.mode, modeLabel: { survival: 'Sinh tồn', timed: `${Number(settings.timerDuration) || 60} giây`, practice: 'Luyện tập' }[this.mode] || 'Sinh tồn', reducedEffects: settings.reducedEffects === true });
     const keyboard = document.querySelector('.virtual-keyboard');
     if (keyboard) keyboard.dataset.size = settings.keyboardSize || 'normal';
     const canvas = document.getElementById('game-canvas');
@@ -205,26 +216,29 @@ class App {
     if (gameInput) gameInput.readOnly = window.matchMedia('(pointer: coarse)').matches;
     this.startedAt = Date.now();
     this.game = new GameEngine(canvas, {
-      lives: Number(settings.lives) || 5, speed: settings.speed || 'normal', fallSeconds: Number(settings.fallSeconds) || ({ slow: 18, normal: 14, fast: 9 }[settings.speed] || 14), duration: Number(settings.timerDuration) || 60,
+      lives: Number(settings.lives) || 5, speed: settings.speed || 'normal', fallSeconds: (Number(settings.fallSeconds) || ({ slow: 18, normal: 14, fast: 9 }[settings.speed] || 14)) * (this.mode === 'practice' && this.pool === 'all' ? 1.5 : 1), duration: Number(settings.timerDuration) || 60,
       wordDirection: 'en-vi', autoSpeak: settings.voiceEnabled === true, voiceEnabled: settings.voiceEnabled === true,
       acceptTypos: settings.acceptTypos !== false, caseSensitive: false, missPenalty: 15,
       reducedEffects: settings.reducedEffects === true,
+      pool: this.pool,
       onHudUpdate: hud => this.updateHud(hud, words.length),
       onAnswerFeedback: feedback => {
         if (feedback.correct) {
           const input = document.getElementById('game-input'); if (input) input.value = '';
-          uiManager.setGameFeedback('');
+          uiManager.setGameFeedback(feedback.wave ? `Đợt ${feedback.wave} — từ rơi nhanh hơn!` : feedback.checkpoint ? `Đã qua ${feedback.checkpoint} từ!` : '', feedback.wave || feedback.checkpoint ? 'good' : '');
         } else {
           if (feedback.autoMiss) { const input = document.getElementById('game-input'); if (input) input.value = ''; }
           uiManager.setGameFeedback('Từ đã chạm vạch — giữ nhịp nhé.', 'wrong');
         }
       },
       onGameOver: async result => {
+        audioManager.stopMusic();
         await statsManager.saveSession({ profileId: profileManager.getCurrentProfile().id, mode: this.mode, score: result.score, wordsShot: result.wordsShot, missedWords: result.missedWords, accuracy: result.accuracy, highestCombo: result.highestCombo, duration: result.duration });
         uiManager.showResults(result);
       }
     });
     this.game.start(words, this.mode);
+    audioManager.startMusic();
     window.setTimeout(() => document.getElementById('game-input')?.focus({ preventScroll: true }), 60);
   }
 
@@ -234,15 +248,15 @@ class App {
     if (hud.combo !== undefined) state.combo = hud.combo;
     if (hud.lives !== undefined) state.lives = hud.lives;
     if (hud.time !== undefined && this.mode === 'timed') state.timeLabel = `${hud.time}s`;
-    state.progress = Math.min(100, ((this.game?.wordsShot || 0) / Math.max(1, total)) * 100);
-    state.progressLabel = `${this.game?.wordsShot || 0} / ${total} trúng`;
+    state.progress = Math.min(100, ((this.game?.resolvedWords || 0) / Math.max(1, total)) * 100);
+    state.progressLabel = this.mode === 'survival' ? `${this.game?.wordsShot || 0} từ trúng` : this.mode === 'timed' ? 'Đua điểm' : `${this.game?.resolvedWords || 0} / ${total} từ`;
     state.progressPercent = Math.round(state.progress);
     uiManager.updateGameHud(state);
   }
 
-  pauseGame() { if (!this.game?.isRunning) return; this.game.pause(); uiManager.showPause(); }
+  pauseGame() { if (!this.game?.isRunning) return; this.game.pause(); audioManager.stopMusic(); uiManager.showPause(); }
   finishEarly() { this.game?.endGame('aborted'); }
-  destroyGame() { this.game?.destroy(); this.game = null; }
+  destroyGame() { audioManager.stopMusic(); this.game?.destroy(); this.game = null; }
   showHint() { const word = this.game?.activeWords?.find(item => item.id === this.game.selectedTargetId) || this.game?.activeWords?.[0]; if (word) uiManager.setGameFeedback(`Gợi ý: ${word.target.slice(0, 1)}${'·'.repeat(Math.max(1, word.target.length - 1))}`, 'hint'); }
 
   pressVirtualKey(key) {

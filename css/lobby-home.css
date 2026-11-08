@@ -493,3 +493,4 @@ body.home-lobby .home-screen[data-theme="space"]::before{background:linear-gradi
 .lobby-daily .lobby-topbar-icon{width:28px;height:28px}
 .lobby-icon-button .lobby-topbar-icon{width:36px;height:36px;margin:auto}
 @media(max-width:650px){.lobby-theme-picker .lobby-topbar-icon{width:29px;height:29px}.lobby-daily .lobby-topbar-icon{width:24px;height:24px}.lobby-icon-button .lobby-topbar-icon{width:27px;height:27px}}
+.lobby-lesson-choice{flex-wrap:wrap;padding-inline:12px}.lobby-lesson-choice label{display:flex;align-items:center;gap:8px;min-width:0}.lobby-lesson-choice select{max-width:min(55vw,280px)}.lobby-lesson-choice button{padding:9px 14px;border:1px solid #9ecce4;border-radius:10px;background:#fff;color:#173a6a;font:700 13px 'DM Sans',sans-serif;cursor:pointer}.lobby-lesson-choice button:focus-visible{outline:3px solid #ffb724;outline-offset:2px}

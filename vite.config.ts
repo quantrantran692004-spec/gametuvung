@@ -13,8 +13,13 @@ export default defineConfig({
       injectRegister: null,
       manifest: false,
       workbox: {
-        globPatterns: ['**/*.{js,css,html,png,webp,svg,ico,json,wav}'],
+        globPatterns: ['**/*.{js,css,html,svg,ico,json}'],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+        runtimeCaching: [{
+          urlPattern: ({ request }) => request.destination === 'image' || request.destination === 'audio',
+          handler: 'CacheFirst',
+          options: { cacheName: 'game-media', expiration: { maxEntries: 80, maxAgeSeconds: 30 * 24 * 60 * 60 } },
+        }],
       },
     }),
   ],

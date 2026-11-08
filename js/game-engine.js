@@ -6,7 +6,7 @@ import floralCard from '../assets/game-themes/word-ornate.webp';
 import floralSword from '../assets/game-themes/flying-ornate.webp';
 import plainSword from '../assets/game-themes/flying-sword.webp';
 import { AnswerChecker } from './answer-checker.js?v=31';
-import { audioManager } from './audio-manager.js?v=31';
+import { audioManager } from './audio-manager.js?v=32';
 import { SpacedRepetition } from './spaced-repetition.js?v=31';
 import { vocabManager } from './vocab-manager.js?v=31';
 
@@ -86,6 +86,11 @@ export class GameEngine {
     this.resizeCanvas();
     this.mode = mode;
     this.words = [...vocabList];
+    this.finiteRound = mode === 'practice';
+    this.reviewRound = this.options.pool === 'review';
+    this.practiceRound = this.options.pool === 'all' && mode === 'practice';
+    this.retryCounts = new Map();
+    this.resolvedWords = 0;
     // Rút từ từ một túi đã xáo trộn, không random lại cùng một từ liên tục.
     this.wordQueue = [...this.words].sort(() => Math.random() - 0.5);
     this.activeWords = [];
@@ -130,7 +135,7 @@ export class GameEngine {
     const baseSpawnRate = this.options.speed === 'fast' ? 3500 : (this.options.speed === 'slow' ? 6000 : 4500);
     const spawnRate = this.mode === 'practice' ? Math.round(baseSpawnRate * 1.45) : baseSpawnRate;
     this.spawnTimer = setInterval(() => {
-      if (!this.isPaused && this.isRunning) {
+      if (!this.isPaused && !document.hidden && this.isRunning) {
         this.spawnWord();
       }
     }, spawnRate);
@@ -141,7 +146,7 @@ export class GameEngine {
     // Mode Timed countdown
     if (this.mode === 'timed') {
       this.gameTimer = setInterval(() => {
-        if (!this.isPaused && this.isRunning) {
+        if (!this.isPaused && !document.hidden && this.isRunning) {
           this.timeRemaining--;
           this.onHudUpdate({ time: this.timeRemaining });
           if (this.timeRemaining <= 0) {
@@ -170,12 +175,11 @@ export class GameEngine {
     // Dùng hết một lượt danh sách rồi mới xáo trộn lại cho lượt kế tiếp.
     const activeKeys = new Set(this.activeWords.map(word => this.getWordKey(word.rawItem)));
     let item = this.wordQueue.find(candidate => !activeKeys.has(this.getWordKey(candidate)));
-    if (!item) {
+    if (!item && !this.finiteRound) {
       this.wordQueue = [...this.words].sort(() => Math.random() - 0.5);
       item = this.wordQueue.find(candidate => !activeKeys.has(this.getWordKey(candidate)));
     }
     if (!item) return;
-    this.wordQueue.splice(this.wordQueue.indexOf(item), 1);
     const displayPrompt = item.vietnamese;
     const targetWord = item.english;
     const subHint = item.ipa || '';
@@ -183,7 +187,7 @@ export class GameEngine {
     const padding = this.canvas.width > 800 ? Math.max(12, this.canvas.width * 0.15) : 12;
     const maxX = Math.max(padding, this.canvas.width - approxWidth - padding);
     // HUD is now a slim overlay inside the arena, so keep new targets clear of it.
-    const y = this.canvas.width < 500 ? 58 : 66;
+    const y = this.canvas.width < 500 ? 112 : 128;
     let x = padding;
     let bestOverlap = Infinity;
     for (let attempt = 0; attempt < 12; attempt++) {
@@ -201,10 +205,12 @@ export class GameEngine {
       if (overlap === 0) break;
     }
     if (bestOverlap > 0) return;
+    this.wordQueue.splice(this.wordQueue.indexOf(item), 1);
     
     // Keep a readable reaction window across phone and desktop. Speeds are
     // derived from the actual arena height instead of fixed screen pixels.
-    const fallSeconds = Math.max(5, Math.min(60, Number(this.options.fallSeconds) || (this.mode === 'practice' ? 22 : (this.options.speed === 'fast' ? 9 : (this.options.speed === 'slow' ? 18 : 14)))));
+    const baseFallSeconds = Number(this.options.fallSeconds) || (this.mode === 'practice' ? 22 : (this.options.speed === 'fast' ? 9 : (this.options.speed === 'slow' ? 18 : 14)));
+    const fallSeconds = Math.max(5, Math.min(60, baseFallSeconds * (this.mode === 'survival' ? Math.max(0.55, 1 - Math.floor(this.wordsShot / 5) * 0.07) : 1)));
     const spawnY = y;
     const targetHeight = 72;
     const playBottom = this.canvas.height - (this.themedArena ? Math.min(120, this.canvas.height * .18) : 0);
@@ -289,6 +295,8 @@ export class GameEngine {
     if (!missedTarget) return;
     this.totalAttempts++;
     this.missedWords++;
+    this.resolvedWords++;
+    this.scheduleReviewRetry(missedTarget.rawItem);
     this.combo = 0;
     if (this.mode === 'survival') this.lives = Math.max(0, this.lives - 1);
     this.createExplosion(missedTarget.x + missedTarget.width / 2, missedTarget.y + missedTarget.height / 2, '#7bdcb5');
@@ -349,9 +357,10 @@ export class GameEngine {
     this.combo++;
     if (this.combo > this.highestCombo) this.highestCombo = this.combo;
 
-    const comboBonus = Math.min(this.combo * 10, 100);
+    const comboBonus = Math.min(this.combo * (this.mode === 'timed' ? 20 : 10), this.mode === 'timed' ? 200 : 100);
     this.score += (100 + comboBonus);
     this.wordsShot++;
+    this.resolvedWords++;
     this.scorePopups.push({
       x: hitWord.x + hitWord.width / 2,
       y: hitWord.y - 8,
@@ -383,6 +392,8 @@ export class GameEngine {
       score: this.score,
       combo: this.combo,
       upgraded: this.wordsShot === 3 || this.wordsShot === 8,
+      wave: this.mode === 'survival' && this.wordsShot % 5 === 0 ? Math.floor(this.wordsShot / 5) + 1 : null,
+      checkpoint: this.options.pool === 'lesson' && this.resolvedWords % 20 === 0 ? this.resolvedWords : null,
       weapon: this.getWeaponLabel()
     });
   }
@@ -436,15 +447,24 @@ export class GameEngine {
     }
   }
 
+  scheduleReviewRetry(item) {
+    if (!(this.reviewRound || this.practiceRound) || !item) return;
+    const retries = this.retryCounts.get(item.id) || 0;
+    if (retries >= 1) return;
+    this.retryCounts.set(item.id, retries + 1);
+    this.wordQueue.push(item);
+  }
+
   loop(timestamp) {
     if (!this.isRunning) return;
 
-    if (!this.isPaused) {
+    if (!this.isPaused && !document.hidden && timestamp - (this.lastRenderTime || 0) >= 32) {
       const deltaSeconds = Math.min(0.05, Math.max(0, (timestamp - this.lastFrameTime) / 1000));
       this.update(deltaSeconds);
       this.render();
+      this.lastRenderTime = timestamp;
+      this.lastFrameTime = timestamp;
     }
-    this.lastFrameTime = timestamp;
 
     requestAnimationFrame((t) => this.loop(t));
   }
@@ -461,6 +481,8 @@ export class GameEngine {
       if (w.y + w.height >= this.canvas.height - (this.themedArena ? Math.min(120, this.canvas.height * .18) : 0)) {
         this.totalAttempts++;
         this.missedWords++;
+        this.resolvedWords++;
+        this.scheduleReviewRetry(w.rawItem);
         this.activeWords.splice(i, 1);
         if (w.id === this.selectedTargetId) {
           this.selectedTargetId = null;
@@ -532,6 +554,7 @@ export class GameEngine {
       popup.life -= deltaSeconds * 0.72;
       if (popup.life <= 0) this.scorePopups.splice(i, 1);
     }
+    if (this.finiteRound && this.wordQueue.length === 0 && this.activeWords.length === 0 && this.projectiles.length === 0) this.endGame('completed');
   }
 
   render() {
@@ -578,14 +601,15 @@ export class GameEngine {
       const targetSize = Math.min(hasCard ? 27 : 21, Math.max(14, 265 / Math.max(w.target.length, 9)));
       ctx.font = `800 ${targetSize}px "DM Sans", sans-serif`;
       const chars = Array.from(w.target); const typed = selected ? w.typedInput || '' : ''; const states = characterStates(w.target, typed);
-      const fullWidth = ctx.measureText(w.target).width;
+      const displayChars = chars.map((_, index) => Array.from(typed)[index] || '•');
+      const fullWidth = ctx.measureText(displayChars.join('')).width;
       const fitWidth = hasCard && floral ? (w.width + 32) * .57 : w.width - 24;
       const textScale = Math.min(1, fitWidth / Math.max(1, fullWidth));
       ctx.translate(w.x + w.width / 2, w.y + (hasCard && !floral ? 27 : hasCard && floral ? 61 : 48));
       ctx.scale(textScale, 1);
       let cursor = -fullWidth / 2;
       ctx.textAlign = 'left';
-      chars.forEach((char, index) => { ctx.fillStyle = states[index] === 'correct' ? '#27bd6c' : states[index] === 'wrong' ? '#fa6570' : (hasCard && !floral ? '#30252a' : '#fff'); ctx.fillText(char, cursor, 0); cursor += ctx.measureText(char).width; });
+      displayChars.forEach((char, index) => { ctx.fillStyle = states[index] === 'correct' ? '#27bd6c' : states[index] === 'wrong' ? '#fa6570' : (hasCard && !floral ? '#30252a' : '#fff'); ctx.fillText(char, cursor, 0); cursor += ctx.measureText(char).width; });
       ctx.restore();
     }
 

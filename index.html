@@ -55,7 +55,8 @@
   <dialog class="dialog" id="bulk-word-dialog" aria-labelledby="bulk-word-title">
     <form id="bulk-word-form">
       <div class="dialog-heading"><div><span class="eyebrow">BỘ SƯU TẬP</span><h2 id="bulk-word-title">Thêm nhiều từ</h2><p>Mỗi dòng nhập một từ tiếng Anh và nghĩa, ngăn cách bằng dấu gạch ngang.</p></div><button class="icon-button" type="button" data-action="close-dialog" aria-label="Đóng">×</button></div>
-      <label class="field"><span>Danh sách từ</span><textarea name="words" required rows="8" placeholder="apple - quả táo&#10;book - quyển sách"></textarea></label>
+      <label class="field"><span>Tên bộ từ</span><input name="unit" required maxlength="80" placeholder="Ví dụ: 100 từ của tôi"></label>
+      <label class="field"><span>Danh sách từ</span><textarea name="words" required rows="8" placeholder="apple - quả táo&#10;book - quyển sách"></textarea><small>Dán cả danh sách, mỗi dòng một cặp từ và nghĩa. Sau khi lưu, chọn “Thử thách bài học” và tên bộ từ này để chơi riêng.</small></label>
       <p id="bulk-word-error" role="alert" hidden></p>
       <div class="dialog-actions"><button class="button button-quiet" type="button" data-action="close-dialog">Hủy</button><button class="button button-primary" type="submit">Thêm vào kho</button></div>
     </form>

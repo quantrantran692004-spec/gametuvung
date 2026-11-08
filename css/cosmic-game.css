@@ -155,3 +155,14 @@
 .game-screen[data-game-theme="1"] .hud-combo{margin-left:24px}
 .game-screen[data-game-theme="1"] .hud-progress{padding-left:18px}
 @media(max-width:800px){.game-screen[data-game-theme="1"] .game-status-row{grid-template-columns:25% 21% 23% 31%}.game-screen[data-game-theme="1"] .hud-combo{margin-left:8px}}
+/* Keep the scoreboard readable above falling targets on narrow screens. */
+.game-screen .game-status-row{z-index:5}.game-screen .hud-card{min-width:0}.game-screen .hud-card strong{min-width:0;overflow-wrap:anywhere}.game-screen .hud-lives{flex-wrap:wrap;max-height:42px;overflow:hidden}.game-screen .arena-controls{z-index:6}
+@media(max-width:800px){.game-screen .game-status-row{width:auto;max-width:none}.game-screen .hud-progress{display:none}.game-screen .hud-card>span{letter-spacing:0}.game-screen .hud-lives{max-height:30px}}
+/* Mode-specific information keeps the illustrated frame clear. */
+.game-screen:not([data-game-theme="0"]) .game-status-row{width:min(78%,1040px);min-height:58px;grid-template-columns:repeat(5,minmax(0,1fr));background:#102b47e8;border:2px solid var(--frame);border-radius:18px;box-shadow:0 3px 14px #07182988;overflow:hidden}
+.game-screen[data-mode="practice"] .hud-hp,.game-screen[data-mode="practice"] .hud-timer,.game-screen[data-mode="survival"] .hud-timer,.game-screen[data-mode="survival"] .hud-progress,.game-screen[data-mode="timed"] .hud-hp,.game-screen[data-mode="timed"] .hud-progress{display:none}
+.game-screen[data-mode="practice"] .game-status-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.6fr)}
+.game-screen[data-mode="survival"] .game-status-row,.game-screen[data-mode="timed"] .game-status-row{grid-template-columns:repeat(3,minmax(0,1fr))}
+.game-screen .hud-card{align-items:center;text-align:center;justify-content:center;padding-inline:8px}.game-screen .hud-progress{padding-right:8px;align-items:stretch;text-align:left}.game-screen .hud-progress>div:first-child{gap:4px}
+@media(max-width:800px){.game-screen:not([data-game-theme="0"]) .game-status-row{left:8px;right:76px;transform:none;width:auto;min-height:48px}.game-screen .hud-card strong{font-size:clamp(13px,4vw,17px)}.game-screen .hud-progress{display:flex}.game-screen[data-mode="practice"] .hud-progress{display:flex}}
+@media(max-width:480px){.game-screen:not([data-game-theme="0"]) .game-status-row{left:5px;right:67px;min-height:42px}.game-screen .hud-progress>div>b{display:none}.game-screen .hud-card{padding-inline:3px}.game-screen .hud-life{width:10px;height:12px;font-size:11px;line-height:12px}}

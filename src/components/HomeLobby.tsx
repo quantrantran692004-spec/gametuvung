@@ -13,10 +13,10 @@ type HomeData = {
 type Props = { data: HomeData; selectedMode: string; pool: string };
 
 const modes = [
-  { id: 'practice', pool: 'all', icon: '🎯', title: 'LUYỆN TẬP', detail: 'Làm quen và củng cố từ vựng', tone: 'blue' },
-  { id: 'survival', pool: 'all', icon: '🏆', title: 'SINH TỒN', detail: 'Trả lời liên tục, trụ càng lâu', tone: 'rose' },
+  { id: 'practice', pool: 'all', icon: '🎯', title: 'LUYỆN TẬP', detail: 'Từ kho · hết lượt khi hoàn thành', tone: 'blue' },
+  { id: 'survival', pool: 'all', icon: '🏆', title: 'SINH TỒN', detail: 'Kho từ · hết mạng mới dừng', tone: 'rose' },
   { id: 'timed', pool: 'all', icon: '⏱️', title: 'TÍNH GIỜ', detail: '', tone: 'gold' },
-  { id: 'practice', pool: 'lesson', icon: '📖', title: 'THỬ THÁCH BÀI HỌC', detail: 'Chinh phục từ vựng theo chủ đề', tone: 'violet' },
+  { id: 'practice', pool: 'lesson', icon: '📖', title: 'THỬ THÁCH BÀI HỌC', detail: 'Chỉ từ bộ bạn chọn · dán cả 100 từ', tone: 'violet' },
   { id: 'practice', pool: 'review', icon: '🔄', title: 'ÔN TẬP TỪ SAI', detail: '', tone: 'green' },
 ];
 
@@ -90,12 +90,12 @@ export default function HomeLobby({ data, selectedMode, pool }: Props) {
             );
           })}
         </div>
-        <label id="lesson-choice" className="lobby-lesson-choice" hidden={pool !== 'lesson'}>Chọn bài học <select id="lesson-unit" aria-label="Chọn bài học">{units.map(unit => <option key={unit} value={unit}>{unit}</option>)}</select></label>
+        <div id="lesson-choice" className="lobby-lesson-choice" hidden={pool !== 'lesson'}><label>Chọn bộ từ <select id="lesson-unit" aria-label="Chọn bộ từ">{units.map(unit => <option key={unit} value={unit}>{unit}</option>)}</select></label><button type="button" data-action="play-all-lesson">Chơi toàn bộ bộ từ</button></div>
       </section>
 
       <section className="lobby-utilities-section"><header className="lobby-section-title"><span className="lobby-title-line" /><h2>TIỆN ÍCH HỌC TẬP</h2><span className="lobby-title-line" /></header><nav className="lobby-utilities" aria-label="Tiện ích">
         <button type="button" className="lobby-utility" data-route="vocabulary"><span className="utility-art">📘</span><span><b>Kho từ vựng</b><small>Quản lý và học từ</small></span><i>›</i></button>
-        <button type="button" className="lobby-utility" data-action="import-words"><span className="utility-art">📄</span><span><b>Nhập tài liệu</b><small>Tạo bộ từ từ tệp</small></span><i>›</i></button>
+        <button type="button" className="lobby-utility" data-action="open-bulk-words"><span className="utility-art">📄</span><span><b>Dán bộ từ</b><small>Dán cả danh sách một lần</small></span><i>›</i></button>
         <button type="button" className="lobby-utility" data-route="progress"><span className="utility-art">🏆</span><span><b>Thành tích</b><small>{Number(stats.totalGames || 0)} lượt · {hits} từ trúng</small></span><i>›</i></button>
         <button type="button" className="lobby-utility" data-route="settings"><span className="utility-art">⚙️</span><span><b>Cài đặt</b><small>Âm thanh và trải nghiệm</small></span><i>›</i></button>
       </nav></section></div>

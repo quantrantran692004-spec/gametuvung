@@ -8,6 +8,9 @@ class AudioManager {
   constructor() {
     this.ctx = null;
     this.soundEnabled = true;
+    this.musicEnabled = false;
+    this.musicTimer = null;
+    this.musicStep = 0;
     this.voiceEnabled = true;
     this.voiceName = '';
     this.voiceRate = 0.68;
@@ -30,6 +33,35 @@ class AudioManager {
       if (AudioContext) this.ctx = new AudioContext();
     }
     if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+  }
+
+  startMusic() {
+    this.stopMusic();
+    if (!this.musicEnabled) return;
+    this.init();
+    if (!this.ctx) return;
+    const notes = [261.63, 329.63, 392, 329.63, 293.66, 349.23, 440, 349.23];
+    const playNote = () => {
+      if (document.hidden || this.ctx.state !== 'running') return;
+      const oscillator = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const now = this.ctx.currentTime;
+      oscillator.type = 'sine';
+      oscillator.frequency.value = notes[this.musicStep++ % notes.length];
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.035, now + 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
+      oscillator.connect(gain).connect(this.ctx.destination);
+      oscillator.start(now);
+      oscillator.stop(now + 0.42);
+    };
+    playNote();
+    this.musicTimer = window.setInterval(playNote, 430);
+  }
+
+  stopMusic() {
+    if (this.musicTimer !== null) window.clearInterval(this.musicTimer);
+    this.musicTimer = null;
   }
 
   refreshVoices() {

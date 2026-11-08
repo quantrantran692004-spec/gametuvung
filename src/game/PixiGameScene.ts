@@ -174,7 +174,7 @@ export default class PixiGameScene {
       visual.prompt.style = { fontFamily: 'DM Sans, sans-serif', fontSize: themed ? 15 : 11, fontWeight: '700', fill: themed ? this.theme.ink : (selected ? 0xffc58b : 0xb5dcff), align: 'center' };
       visual.prompt.scale.set(1);
       visual.prompt.scale.x = Math.min(1, promptWidth / Math.max(1, visual.prompt.width));
-      visual.answer.text = word.target;
+      visual.answer.text = '•'.repeat(Array.from(word.target).length);
       visual.answer.position.set(word.width / 2, answerY);
       const fontSize = Math.min(themed ? 27 : 21, Math.max(14, (themed ? 330 : 265) / Math.max(word.target.length, 9)));
       visual.answer.style = { fontFamily: 'DM Sans, sans-serif', fontSize, fontWeight: '700', fill: this.floral ? 0xffffff : this.theme.ink, align: 'center' };
@@ -188,7 +188,7 @@ export default class PixiGameScene {
       if (selected && word.typedInput) {
         const chars = Array.from(word.target);
         const statuses = characterStates(word.target, word.typedInput);
-        const nodes = chars.map((char, index) => new Text({ text: char, style: { fontFamily: 'DM Sans, sans-serif', fontSize, fontWeight: '700', fill: statuses[index] === 'correct' ? 0x54e69a : statuses[index] === 'wrong' ? 0xffa3ae : (this.floral ? 0xffffff : this.theme.ink) } }));
+        const nodes = chars.map((_, index) => new Text({ text: Array.from(word.typedInput || '')[index] || '•', style: { fontFamily: 'DM Sans, sans-serif', fontSize, fontWeight: '700', fill: statuses[index] === 'correct' ? 0x54e69a : statuses[index] === 'wrong' ? 0xffa3ae : (this.floral ? 0xffffff : this.theme.ink) } }));
         const total = nodes.reduce((sum, node) => sum + node.width, 0);
         let left = (word.width - total) / 2;
         for (const node of nodes) { node.position.set(left, answerY - node.height / 2); visual.letters.addChild(node); left += node.width; }
