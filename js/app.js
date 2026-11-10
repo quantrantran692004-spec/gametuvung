@@ -201,7 +201,7 @@ class App {
     const settings = profileManager.getCurrentProfile().settings || {};
     const lessonUnit = document.getElementById('lesson-unit')?.value || '';
     let words = this.pool === 'lesson'
-      ? vocabManager.getAll().filter(word => (String(word.unit || 'General').trim() || 'General') === lessonUnit).sort(() => Math.random() - 0.5).slice(0, playAllLesson ? undefined : Number(settings.sessionSize) || 10)
+      ? vocabManager.getGameWords(playAllLesson ? Infinity : Number(settings.sessionSize) || 10, `unit:${lessonUnit}`)
       : vocabManager.getGameWords(Number(settings.sessionSize) || 10, this.pool);
     if (this.mode === 'survival' || this.mode === 'practice' || this.mode === 'timed') {
       if (!words.length) { uiManager.showToast(this.pool === 'review' ? 'Không có từ cần ôn trong kho.' : this.pool === 'lesson' ? 'Bài học này chưa có từ.' : 'Thêm ít nhất một từ để bắt đầu.', 'error'); await this.navigate('vocabulary'); return; }

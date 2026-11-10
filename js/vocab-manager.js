@@ -147,7 +147,17 @@ export class VocabManager {
       pool = pool.filter(w => w.isFavorite);
     } else if (mode === 'review') {
       pool = SpacedRepetition.getDueWords(pool);
+    } else if (mode.startsWith('unit:')) {
+      const unit = mode.slice(5);
+      pool = pool.filter(w => (String(w.unit || 'General').trim() || 'General') === unit);
     }
+    const seen = new Set();
+    pool = pool.filter(word => {
+      const key = String(word.english || '').trim().toLocaleLowerCase();
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
     
     // Shuffle
     pool.sort(() => Math.random() - 0.5);

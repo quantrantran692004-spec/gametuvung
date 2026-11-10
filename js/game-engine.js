@@ -86,10 +86,8 @@ export class GameEngine {
     this.resizeCanvas();
     this.mode = mode;
     this.words = [...vocabList];
-    this.finiteRound = mode === 'practice';
-    this.reviewRound = this.options.pool === 'review';
-    this.practiceRound = this.options.pool === 'all' && mode === 'practice';
-    this.retryCounts = new Map();
+    // Each selected word appears once in a round, regardless of mode.
+    this.finiteRound = true;
     this.resolvedWords = 0;
     // Rút từ từ một túi đã xáo trộn, không random lại cùng một từ liên tục.
     this.wordQueue = [...this.words].sort(() => Math.random() - 0.5);
@@ -175,10 +173,6 @@ export class GameEngine {
     // Dùng hết một lượt danh sách rồi mới xáo trộn lại cho lượt kế tiếp.
     const activeKeys = new Set(this.activeWords.map(word => this.getWordKey(word.rawItem)));
     let item = this.wordQueue.find(candidate => !activeKeys.has(this.getWordKey(candidate)));
-    if (!item && !this.finiteRound) {
-      this.wordQueue = [...this.words].sort(() => Math.random() - 0.5);
-      item = this.wordQueue.find(candidate => !activeKeys.has(this.getWordKey(candidate)));
-    }
     if (!item) return;
     const displayPrompt = item.vietnamese;
     const targetWord = item.english;
@@ -296,7 +290,6 @@ export class GameEngine {
     this.totalAttempts++;
     this.missedWords++;
     this.resolvedWords++;
-    this.scheduleReviewRetry(missedTarget.rawItem);
     this.combo = 0;
     if (this.mode === 'survival') this.lives = Math.max(0, this.lives - 1);
     this.createExplosion(missedTarget.x + missedTarget.width / 2, missedTarget.y + missedTarget.height / 2, '#7bdcb5');
@@ -447,14 +440,6 @@ export class GameEngine {
     }
   }
 
-  scheduleReviewRetry(item) {
-    if (!(this.reviewRound || this.practiceRound) || !item) return;
-    const retries = this.retryCounts.get(item.id) || 0;
-    if (retries >= 1) return;
-    this.retryCounts.set(item.id, retries + 1);
-    this.wordQueue.push(item);
-  }
-
   loop(timestamp) {
     if (!this.isRunning) return;
 
@@ -482,7 +467,6 @@ export class GameEngine {
         this.totalAttempts++;
         this.missedWords++;
         this.resolvedWords++;
-        this.scheduleReviewRetry(w.rawItem);
         this.activeWords.splice(i, 1);
         if (w.id === this.selectedTargetId) {
           this.selectedTargetId = null;
@@ -601,15 +585,14 @@ export class GameEngine {
       const targetSize = Math.min(hasCard ? 27 : 21, Math.max(14, 265 / Math.max(w.target.length, 9)));
       ctx.font = `800 ${targetSize}px "DM Sans", sans-serif`;
       const chars = Array.from(w.target); const typed = selected ? w.typedInput || '' : ''; const states = characterStates(w.target, typed);
-      const displayChars = chars.map((_, index) => Array.from(typed)[index] || '•');
-      const fullWidth = ctx.measureText(displayChars.join('')).width;
+      const fullWidth = ctx.measureText(w.target).width;
       const fitWidth = hasCard && floral ? (w.width + 32) * .57 : w.width - 24;
       const textScale = Math.min(1, fitWidth / Math.max(1, fullWidth));
       ctx.translate(w.x + w.width / 2, w.y + (hasCard && !floral ? 27 : hasCard && floral ? 61 : 48));
       ctx.scale(textScale, 1);
       let cursor = -fullWidth / 2;
       ctx.textAlign = 'left';
-      displayChars.forEach((char, index) => { ctx.fillStyle = states[index] === 'correct' ? '#27bd6c' : states[index] === 'wrong' ? '#fa6570' : (hasCard && !floral ? '#30252a' : '#fff'); ctx.fillText(char, cursor, 0); cursor += ctx.measureText(char).width; });
+      chars.forEach((char, index) => { ctx.fillStyle = states[index] === 'correct' ? '#27bd6c' : states[index] === 'wrong' ? '#fa6570' : (hasCard && !floral ? '#30252a' : '#fff'); ctx.fillText(char, cursor, 0); cursor += ctx.measureText(char).width; });
       ctx.restore();
     }
 
