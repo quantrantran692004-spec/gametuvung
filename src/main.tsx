@@ -29,5 +29,6 @@ registerSW({
     window.addEventListener('online', check);
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') check(); });
     window.setInterval(check, 60 * 60 * 1000);
+    check();
   },
 });
